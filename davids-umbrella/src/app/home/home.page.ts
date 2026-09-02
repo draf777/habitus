@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, DatePipe } from '@angular/common';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, IonSpinner, ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { informationCircleOutline, umbrella, sunny, refresh } from 'ionicons/icons';
@@ -17,7 +17,7 @@ type ViewState =
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, IonSpinner, DecimalPipe],
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, IonSpinner, DecimalPipe, DatePipe],
 })
 export class HomePage implements OnInit {
   private readonly locationService = inject(LocationService);
