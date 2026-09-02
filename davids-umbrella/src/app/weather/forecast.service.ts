@@ -103,7 +103,7 @@ export class ForecastService {
     }
 
     const entry: CacheEntry = JSON.parse(raw);
-    if (Date.now() >= entry.expires) {
+    if (typeof entry.fetchedAt !== 'number' || Date.now() >= entry.expires) {
       localStorage.removeItem(key);
       return null;
     }
