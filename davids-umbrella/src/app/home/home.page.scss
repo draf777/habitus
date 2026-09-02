@@ -1,0 +1,37 @@
+.state-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  padding: 24px;
+
+  ion-spinner {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+.result-icon {
+  font-size: 96px;
+  color: var(--ion-color-warning);
+
+  &.needed {
+    color: var(--ion-color-primary);
+  }
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  max-width: 20rem;
+}
+
+.temperature {
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0;
+  opacity: 0.8;
+}

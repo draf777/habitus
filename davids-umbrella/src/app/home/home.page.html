@@ -1,0 +1,44 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Davids Umbrella</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openAbout()" aria-label="Über die App">
+        <ion-icon slot="icon-only" name="information-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  @let current = state();
+  @switch (current.status) {
+    @case ('loading') {
+      <div class="state-container">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Wetterdaten werden geladen…</p>
+      </div>
+    }
+    @case ('error') {
+      <div class="state-container">
+        <p>Die Wetterdaten konnten nicht geladen werden.</p>
+        <ion-button (click)="load()">
+          <ion-icon slot="start" name="refresh"></ion-icon>
+          Erneut versuchen
+        </ion-button>
+      </div>
+    }
+    @case ('result') {
+      <div class="state-container">
+        <ion-icon
+          class="result-icon"
+          [class.needed]="current.forecast.umbrellaNeeded"
+          [name]="current.forecast.umbrellaNeeded ? 'umbrella' : 'sunny'"
+        ></ion-icon>
+        <h1>{{ current.forecast.umbrellaNeeded ? 'Ja, nimm einen Schirm mit!' : 'Nein, heute brauchst du keinen Schirm.' }}</h1>
+        @if (current.forecast.currentTemperature !== null) {
+          <p class="temperature">{{ current.forecast.currentTemperature | number: '1.0-0' }}°C</p>
+        }
+      </div>
+    }
+  }
+</ion-content>

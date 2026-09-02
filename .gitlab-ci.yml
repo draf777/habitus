@@ -1,0 +1,11 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: always
+
+stages:
+  - build
+  - deploy
+
+include:
+  - '/davids-umbrella/.gitlab-ci.yml'
