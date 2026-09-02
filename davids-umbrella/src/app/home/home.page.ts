@@ -3,11 +3,14 @@ import { DecimalPipe } from '@angular/common';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, IonSpinner, ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { informationCircleOutline, umbrella, sunny, refresh } from 'ionicons/icons';
-import { LocationService } from '../weather/location.service';
+import { LocationService, GeoLocation } from '../weather/location.service';
 import { ForecastService, UmbrellaForecast } from '../weather/forecast.service';
 import { AboutComponent } from '../about/about.component';
 
-type ViewState = { status: 'loading' } | { status: 'error' } | { status: 'result'; forecast: UmbrellaForecast };
+type ViewState =
+  | { status: 'loading' }
+  | { status: 'error' }
+  | { status: 'result'; forecast: UmbrellaForecast; location: GeoLocation };
 
 @Component({
   selector: 'app-home',
@@ -35,10 +38,20 @@ export class HomePage implements OnInit {
     try {
       const location = await this.locationService.getLocation();
       const forecast = await this.forecastService.getUmbrellaForecast(location);
-      this.state.set({ status: 'result', forecast });
+      this.state.set({ status: 'result', forecast, location });
     } catch {
       this.state.set({ status: 'error' });
     }
+  }
+
+  // Fallback location is always Zürich (see FALLBACK_LOCATION); device coordinates aren't reverse-geocoded, so they're shown as-is.
+  locationLabel(location: GeoLocation): string {
+    if (location.source === 'fallback') {
+      return 'Zürich (Standardstandort, kein Standortzugriff)';
+    }
+    const ns = location.lat >= 0 ? 'N' : 'S';
+    const ew = location.lon >= 0 ? 'O' : 'W';
+    return `Aktueller Standort (${Math.abs(location.lat).toFixed(2)}°${ns}, ${Math.abs(location.lon).toFixed(2)}°${ew})`;
   }
 
   async openAbout(): Promise<void> {

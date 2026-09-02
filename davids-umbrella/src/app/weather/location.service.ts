@@ -24,7 +24,10 @@ export class LocationService {
             lon: position.coords.longitude,
             source: 'device',
           }),
-        () => resolve(FALLBACK_LOCATION),
+        (error) => {
+          console.warn(`Geolocation fehlgeschlagen (Code ${error.code}): ${error.message}`);
+          resolve(FALLBACK_LOCATION);
+        },
         { timeout: 10000 },
       );
     });

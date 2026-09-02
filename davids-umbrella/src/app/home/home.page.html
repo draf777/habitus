@@ -38,6 +38,7 @@
         @if (current.forecast.currentTemperature !== null) {
           <p class="temperature">{{ current.forecast.currentTemperature | number: '1.0-0' }}°C</p>
         }
+        <p class="location">{{ locationLabel(current.location) }}</p>
       </div>
     }
   }
