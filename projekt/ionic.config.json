@@ -1,7 +1,4 @@
 {
   "name": "habitus",
-  "integrations": {
-    "capacitor": {}
-  },
   "type": "angular-standalone"
 }
