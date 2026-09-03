@@ -1,7 +1,0 @@
-{
-  "name": "davids-umbrella",
-  "integrations": {
-    "capacitor": {}
-  },
-  "type": "angular-standalone"
-}

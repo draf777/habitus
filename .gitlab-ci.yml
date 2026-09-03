@@ -8,4 +8,4 @@ stages:
   - deploy
 
 include:
-  - '/davids-umbrella/.gitlab-ci.yml'
+  - '/projekt/.gitlab-ci.yml'
