@@ -1,0 +1,10 @@
+<ion-item>
+  <ion-checkbox
+    justify="start"
+    labelPlacement="end"
+    [checked]="todo().done"
+    [disabled]="true"
+  >
+    <ion-label [class.todo-done]="todo().done">{{ todo().title }}</ion-label>
+  </ion-checkbox>
+</ion-item>

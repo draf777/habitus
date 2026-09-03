@@ -1,0 +1,15 @@
+<ion-item>
+  <ion-icon slot="start" aria-hidden="true" [name]="entry().habit.icon" color="primary"></ion-icon>
+
+  <ion-label>
+    <h2>{{ entry().habit.title }}</h2>
+    <p>{{ entry().habit.weeklyGoal }}× pro Woche</p>
+  </ion-label>
+
+  <ion-checkbox
+    slot="end"
+    [checked]="entry().done"
+    [disabled]="true"
+    [attr.aria-label]="entry().habit.title + ' erledigt'"
+  ></ion-checkbox>
+</ion-item>

@@ -1,0 +1,12 @@
+<ion-item lines="full">
+  <ion-label>
+    <h2>{{ stat().habit.title }}</h2>
+    <ion-progress-bar
+      color="primary"
+      [value]="progress()"
+      [attr.aria-label]="stat().habit.title + ' Wochenfortschritt'"
+    ></ion-progress-bar>
+  </ion-label>
+
+  <ion-note slot="end">{{ stat().completed }} / {{ stat().habit.weeklyGoal }}</ion-note>
+</ion-item>

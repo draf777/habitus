@@ -1,18 +1,31 @@
 variables:
   CODE_DIR: ./projekt
 
-build_app:
-  stage: build
+.node_job:
   tags:
     - pullpolicy
-  allow_failure: false
-  image: 
+  image:
     name: node:26
     pull_policy: if-not-present
-  script:
-    - echo "Building the Angular app..."
+  before_script:
     - cd $CODE_DIR
     - npm ci
+
+test_app:
+  extends: .node_job
+  stage: test
+  allow_failure: false
+  script:
+    - echo "Running the unit tests..."
+    - npm run test:ci
+
+build_app:
+  extends: .node_job
+  stage: build
+  allow_failure: false
+  needs: ["test_app"]
+  script:
+    - echo "Building the Angular app..."
     - npm run build
   artifacts:
     paths:
@@ -30,4 +43,3 @@ deploy_app:
     - chmod 600 ~/.ssh/id_rsa
     - scp -o LogLevel=DEBUG -r $CODE_DIR/www/* $USER@$HOST:/srv/uk335/_dr/
     - ssh $USER@$HOST 'cd /srv/uk335 && chmod 755 _dr && mv dr ~dr && mv _dr dr && rm -r ~dr'
- 

@@ -1,15 +1,17 @@
 {
-  "name": "projekt",
-  "version": "0.0.1",
-  "author": "Ionic Framework",
-  "homepage": "https://ionicframework.com/",
+  "name": "habitus",
+  "version": "0.1.0",
+  "author": "David Roth",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "icons": "node scripts/generate-icons.mjs",
+    "test:ci": "ng test --configuration ci",
+    "serve:prod": "node scripts/serve-www.mjs"
   },
   "private": true,
   "dependencies": {
@@ -40,9 +42,10 @@
     "angular-eslint": "22.0.0",
     "eslint": "^9.16.0",
     "jsdom": "^26.0.0",
+    "sharp": "^0.35.4",
     "typescript": "~6.0.0",
     "typescript-eslint": "^8.61.0",
     "vitest": "^4.0.8"
   },
-  "description": "An Ionic project"
+  "description": "Habitus – Habit-Tracker mit Todo-Liste als PWA (Angular + Ionic)."
 }

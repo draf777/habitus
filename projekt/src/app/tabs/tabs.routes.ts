@@ -1,36 +1,43 @@
 import { Routes } from '@angular/router';
+
+import { DEFAULT_TAB } from './tabs.config';
 import { TabsPage } from './tabs.page';
 
+/**
+ * Routes below the tab bar. Every tab is lazily loaded so a tab only costs
+ * its own bundle; the paths must match `TABS` in `tabs.config.ts`.
+ */
 export const routes: Routes = [
   {
     path: 'tabs',
     component: TabsPage,
     children: [
       {
-        path: 'tab1',
-        loadComponent: () =>
-          import('../tab1/tab1.page').then((m) => m.Tab1Page),
+        path: 'heute',
+        loadComponent: () => import('../features/today/today.page').then((m) => m.TodayPage),
       },
       {
-        path: 'tab2',
-        loadComponent: () =>
-          import('../tab2/tab2.page').then((m) => m.Tab2Page),
+        path: 'statistik',
+        loadComponent: () => import('../features/stats/stats.page').then((m) => m.StatsPage),
       },
       {
-        path: 'tab3',
-        loadComponent: () =>
-          import('../tab3/tab3.page').then((m) => m.Tab3Page),
+        path: 'todos',
+        loadComponent: () => import('../features/todos/todos.page').then((m) => m.TodosPage),
+      },
+      {
+        path: 'ueber',
+        loadComponent: () => import('../features/about/about.page').then((m) => m.AboutPage),
       },
       {
         path: '',
-        redirectTo: '/tabs/tab1',
+        redirectTo: `/tabs/${DEFAULT_TAB}`,
         pathMatch: 'full',
       },
     ],
   },
   {
     path: '',
-    redirectTo: '/tabs/tab1',
+    redirectTo: `/tabs/${DEFAULT_TAB}`,
     pathMatch: 'full',
   },
 ];

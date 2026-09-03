@@ -1,2 +1,13 @@
+// Habitus theme.
 // For information on how to create your own theme, please refer to:
 // https://ionicframework.com/docs/theming/
+
+:root {
+  /** primary — Habitus teal **/
+  --ion-color-primary: #0e7c86;
+  --ion-color-primary-rgb: 14, 124, 134;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #0c6d76;
+  --ion-color-primary-tint: #268992;
+}

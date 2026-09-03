@@ -1,0 +1,16 @@
+.week-summary {
+  text-align: center;
+  padding: 1.5rem 1rem 0.5rem;
+}
+
+.week-summary__value {
+  margin: 0;
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+}
+
+.week-summary__label {
+  margin: 0.25rem 0 0;
+  color: var(--ion-color-medium);
+}

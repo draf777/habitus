@@ -1,0 +1,26 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Statistik</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Statistik</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="week-summary">
+    <p class="week-summary__value">{{ weeklyCompletionPercent() }}%</p>
+    <p class="week-summary__label">deiner Wochenziele erreicht</p>
+  </div>
+
+  <ion-list [inset]="true">
+    <ion-list-header>Diese Woche</ion-list-header>
+
+    @for (stat of stats(); track stat.habit.id) {
+      <app-habit-progress [stat]="stat"></app-habit-progress>
+    }
+  </ion-list>
+</ion-content>

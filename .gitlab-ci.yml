@@ -4,6 +4,7 @@ workflow:
       when: always
 
 stages:
+  - test
   - build
   - deploy
 

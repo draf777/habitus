@@ -1,0 +1,53 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Über</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Über</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <section class="intro">
+    <h1>{{ info.name }}</h1>
+    <p>{{ info.description }}</p>
+  </section>
+
+  <ion-list [inset]="true">
+    <ion-list-header>Technologien</ion-list-header>
+
+    @for (tech of techStack; track tech.name) {
+      <ion-item>
+        <ion-label>
+          <h2>{{ tech.name }}</h2>
+          <p>{{ tech.role }}</p>
+        </ion-label>
+      </ion-item>
+    }
+  </ion-list>
+
+  <ion-list [inset]="true">
+    <ion-list-header>Projekt</ion-list-header>
+
+    <ion-item>
+      <ion-label>Autor</ion-label>
+      <ion-note slot="end">{{ info.author }}</ion-note>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Version</ion-label>
+      <ion-note slot="end">{{ info.version }}</ion-note>
+    </ion-item>
+
+    <ion-item [href]="info.readmeUrl" target="_blank" rel="noopener" [detail]="true">
+      <ion-label>README auf GitLab</ion-label>
+    </ion-item>
+
+    <ion-item [href]="info.repositoryUrl" target="_blank" rel="noopener" [detail]="true">
+      <ion-label>Repository</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

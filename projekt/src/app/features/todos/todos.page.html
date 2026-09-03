@@ -1,0 +1,33 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Todos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Todos</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-list [inset]="true">
+    <ion-list-header>Offen</ion-list-header>
+
+    @for (todo of openTodos(); track todo.id) {
+      <app-todo-item [todo]="todo"></app-todo-item>
+    } @empty {
+      <ion-note class="empty-hint">Nichts mehr offen.</ion-note>
+    }
+  </ion-list>
+
+  @if (doneTodos().length > 0) {
+    <ion-list [inset]="true">
+      <ion-list-header>Erledigt</ion-list-header>
+
+      @for (todo of doneTodos(); track todo.id) {
+        <app-todo-item [todo]="todo"></app-todo-item>
+      }
+    </ion-list>
+  }
+</ion-content>
