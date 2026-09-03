@@ -11,6 +11,7 @@ import {
 
 import { DEMO_TODOS } from '../../core/data/demo-todos';
 import { Todo } from '../../core/models/todo.model';
+import { DemoNoticeComponent } from '../../shared/components/demo-notice/demo-notice.component';
 import { TodoItemComponent } from '../../shared/components/todo-item/todo-item.component';
 
 /**
@@ -31,6 +32,7 @@ import { TodoItemComponent } from '../../shared/components/todo-item/todo-item.c
     IonList,
     IonListHeader,
     IonNote,
+    DemoNoticeComponent,
     TodoItemComponent,
   ],
 })

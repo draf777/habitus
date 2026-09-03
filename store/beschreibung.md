@@ -22,6 +22,9 @@ Account, und deine Daten bleiben auf deinem Gerät.
 
 ## Features
 
+Geplanter Funktionsumfang (Stand v0.1.0: erst als Vorschau mit Demo-Daten umgesetzt,
+siehe "Was ist neu"):
+
 * Tägliche Habits abhaken
 * Wochenstatistik pro Habit
 * Todo-Liste für einmalige Aufgaben
@@ -40,5 +43,7 @@ ablenkungsfreies Werkzeug suchen.
 ## Was ist neu (v0.1.0)
 
 Erste Version: Grundgerüst mit den vier Bereichen Heute, Statistik, Todos und
-Über sowie PWA-Unterstützung.
+Über sowie PWA-Unterstützung. Die Bereiche Heute, Statistik und Todos zeigen
+noch Demo-Daten — eigene Habits und Aufgaben lassen sich noch nicht anlegen,
+abhaken oder speichern. Die App weist an diesen Stellen selbst darauf hin.
 

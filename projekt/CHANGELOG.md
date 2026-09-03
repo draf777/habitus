@@ -2,10 +2,13 @@
 
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei festgehalten.
 
-Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
-und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
-
 ## [Unreleased]
+
+### Added
+
+- Hinweis-Banner auf "Heute", "Statistik" und "Todos": macht sichtbar, dass dort Demo-Daten
+  stehen und Abhaken, Anlegen und Speichern noch nicht funktionieren
+- Über-Seite: Eintrag "Status" mit dem aktuellen Funktionsumfang
 
 ## [0.1.0] - 2026-09-03
 

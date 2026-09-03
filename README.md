@@ -8,7 +8,9 @@ Habitus ist ein Habit-Tracker mit integrierter Todo-Liste: Du legst die Gewohnhe
 
 ## Status
 
-Aktuelle Version: **v0.1.0** — lauffähiges Grundgerüst mit vier Tabs (Heute, Statistik, Todos, Über), PWA-Konfiguration und automatischem Deploy. Die Inhalte auf "Heute", "Statistik" und "Todos" sind noch Platzhalter ohne Persistenz.
+Aktuelle Version: **v0.1.0** — lauffähiges Grundgerüst mit vier Tabs (Heute, Statistik, Todos, Über), PWA-Konfiguration und automatischem Deploy.
+
+Was noch **nicht** funktioniert: "Heute", "Statistik" und "Todos" zeigen fest eingebaute Demo-Daten aus `projekt/src/app/core/data/`. Habits und Aufgaben lassen sich nicht abhaken, anlegen, bearbeiten oder löschen — die Checkboxen sind bewusst deaktiviert, und es gibt keine Persistenz. Jede dieser drei Seiten weist im UI selbst mit einem Hinweis-Banner darauf hin. Funktionsfähig sind bisher die Navigation, das Layout, die Über-Seite und die PWA-Installation.
 
 Live: TODO: URL des Deployments eintragen.
 
@@ -37,7 +39,7 @@ Innerhalb von `/projekt/src/app`:
 | --- | --- |
 | `core/` | Modelle (`Habit`, `Todo`), App-Infos und die aktuellen Demo-Daten |
 | `features/` | Je eine Page pro Tab: `today`, `stats`, `todos`, `about` |
-| `shared/components/` | Wiederverwendbare Bausteine (`habit-item`, `habit-progress`, `todo-item`) |
+| `shared/components/` | Wiederverwendbare Bausteine (`habit-item`, `habit-progress`, `todo-item`, `demo-notice`) |
 | `tabs/` | Tab-Bar, Tab-Konfiguration und Routing |
 
 ## Entwicklung

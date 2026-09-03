@@ -12,6 +12,7 @@ import {
 
 import { DEMO_TODAY } from '../../core/data/demo-habits';
 import { HabitEntry } from '../../core/models/habit.model';
+import { DemoNoticeComponent } from '../../shared/components/demo-notice/demo-notice.component';
 import { HabitItemComponent } from '../../shared/components/habit-item/habit-item.component';
 
 /**
@@ -34,6 +35,7 @@ import { HabitItemComponent } from '../../shared/components/habit-item/habit-ite
     IonList,
     IonListHeader,
     IonNote,
+    DemoNoticeComponent,
     HabitItemComponent,
   ],
 })

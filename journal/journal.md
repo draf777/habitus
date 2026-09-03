@@ -13,3 +13,5 @@
 
 * Über-Seite überarbeitet: Technologie-Liste entfernt, dafür ausführlichere Beschreibung der App ergänzt.
 * Statusleisten-Farbe (theme-color) reagiert jetzt per Media Query auf hell/dunkel, statt fix zu bleiben.
+* Hinweis-Banner ergänzt: die Seiten Heute, Statistik und Todos sagen jetzt selbst, dass sie Demo-Daten zeigen und das Abhaken/Speichern noch nicht funktioniert. Grund: eine deaktivierte Checkbox sieht sonst nach einem Bug aus statt nach einem noch nicht gebauten Feature.
+* README, CHANGELOG und Store-Beschreibung entsprechend auf den tatsächlichen Funktionsumfang von v0.1.0 korrigiert.

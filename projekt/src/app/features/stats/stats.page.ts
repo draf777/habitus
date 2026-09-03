@@ -10,6 +10,7 @@ import {
 
 import { DEMO_STATS } from '../../core/data/demo-habits';
 import { HabitStat } from '../../core/models/habit.model';
+import { DemoNoticeComponent } from '../../shared/components/demo-notice/demo-notice.component';
 import { HabitProgressComponent } from '../../shared/components/habit-progress/habit-progress.component';
 
 /**
@@ -22,7 +23,16 @@ import { HabitProgressComponent } from '../../shared/components/habit-progress/h
   templateUrl: './stats.page.html',
   styleUrls: ['./stats.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, HabitProgressComponent],
+  imports: [
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonList,
+    IonListHeader,
+    DemoNoticeComponent,
+    HabitProgressComponent,
+  ],
 })
 export class StatsPage {
   /** Weekly numbers per habit. */
