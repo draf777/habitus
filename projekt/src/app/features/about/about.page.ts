@@ -11,7 +11,7 @@ import {
   IonToolbar,
 } from '@ionic/angular';
 
-import { APP_INFO, TECH_STACK } from '../../core/app-info';
+import { APP_INFO } from '../../core/app-info';
 
 /** "Über" — what the app is, what it is built with and who made it. */
 @Component({
@@ -33,5 +33,4 @@ import { APP_INFO, TECH_STACK } from '../../core/app-info';
 })
 export class AboutPage {
   readonly info = APP_INFO;
-  readonly techStack = TECH_STACK;
 }

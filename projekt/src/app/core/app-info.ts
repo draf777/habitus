@@ -3,18 +3,14 @@ export const APP_INFO = {
   name: 'Habitus',
   version: '0.1.0',
   description:
-    'Habitus hilft dir, tägliche Gewohnheiten durchzuziehen und einzelne Aufgaben nicht zu vergessen — ' +
-    'alles in einer App, offline nutzbar und ohne Account.',
+    'Habitus hilft dir, Gewohnheiten aufzubauen und wirklich durchzuziehen. Du legst fest, was du ' +
+    'regelmässig tun willst — meditieren, trainieren, lesen, was auch immer — und hakst es jeden Tag ab. ' +
+    'Die Statistik zeigt dir auf einen Blick, wie gut deine Woche läuft, ohne dich mit Zahlen zu ' +
+    'überfordern. Für alles, was nur einmal erledigt werden muss, gibt es zusätzlich eine schlanke ' +
+    'Todo-Liste, getrennt von den täglichen Habits.\n\n' +
+    'Die App läuft komplett offline und lokal auf deinem Gerät: kein Account, kein Backend, keine Cloud. ' +
+    'Du kannst sie als Progressive Web App auf dem Homescreen installieren und wie eine normale App nutzen.',
   author: 'David Roth',
   repositoryUrl: 'https://gitlab.santis-basis.ch/il24/335-david',
   readmeUrl: 'https://gitlab.santis-basis.ch/il24/335-david/-/blob/main/README.md',
 } as const;
-
-/** The technologies the app is built on, listed on the "Über" page. */
-export const TECH_STACK: readonly { readonly name: string; readonly role: string }[] = [
-  { name: 'Angular 22', role: 'Standalone Components, Signals' },
-  { name: 'Ionic 9', role: 'UI-Komponenten und Tab-Navigation' },
-  { name: 'Angular Service Worker', role: 'PWA: installierbar und offline-fähig' },
-  { name: 'Vitest', role: 'Unit-Tests' },
-  { name: 'GitLab CI/CD', role: 'Pipeline: test, build, deploy' },
-];

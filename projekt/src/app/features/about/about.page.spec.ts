@@ -27,11 +27,4 @@ describe('AboutPage', () => {
     expect(hrefs).toContain(APP_INFO.readmeUrl);
     expect(hrefs).toContain(APP_INFO.repositoryUrl);
   });
-
-  it('lists every technology of the stack', () => {
-    const text: string = fixture.nativeElement.textContent;
-    for (const tech of fixture.componentInstance.techStack) {
-      expect(text).toContain(tech.name);
-    }
-  });
 });

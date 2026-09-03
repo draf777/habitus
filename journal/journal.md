@@ -7,4 +7,9 @@
 * Entscheidung Testing: Vitest mit jsdom (der Standard des Angular-22-Test-Builders), weil ohne Zusatzkonfiguration lauffähig und ohne Browser in der Pipeline ausführbar.
 * PWA-Grundkonfiguration inkl. eigenem Icon gesetzt.
 * v0.1.0 getaggt, Pipeline grün, App live.
+* Einige Unit-Tests geschrieben.
 
+## 3.9., Nachmittag
+
+* Über-Seite überarbeitet: Technologie-Liste entfernt, dafür ausführlichere Beschreibung der App ergänzt.
+* Statusleisten-Farbe (theme-color) reagiert jetzt per Media Query auf hell/dunkel, statt fix zu bleiben.
