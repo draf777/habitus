@@ -11,7 +11,6 @@ cache:
 .node_job:
   tags:
     - pullpolicy
-    - myrunner
   image:
     name: node:26
   before_script:
@@ -21,6 +20,8 @@ cache:
 test_app:
   extends: .node_job
   stage: test
+  tags:
+    - myrunner
   allow_failure: false
   script:
     - echo "Running the unit tests..."
