@@ -18,13 +18,6 @@ export class AppComponent {
     void inject(SettingsService).load();
     this.watchForAppUpdates();
   }
-
-  /**
-   * Listens for the service worker announcing that a new version has been
-   * downloaded and is ready, and offers to reload to it. Without this, an
-   * already-open tab keeps running the old version until it's closed and
-   * reopened, even though the new version was fetched in the background.
-   */
   private watchForAppUpdates(): void {
     if (!this.swUpdate.isEnabled) {
       return;
