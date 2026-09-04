@@ -9,6 +9,19 @@
  * https://ionicframework.com/docs/layout/global-stylesheets
  */
 
+/**
+ * Disable pinch-zoom
+ * -----------------------------------------------------
+ * The viewport meta's `user-scalable=no`/`maximum-scale=1.0` (index.html) is
+ * ignored by Android Chrome and other modern mobile browsers on purpose —
+ * they treat it as an accessibility anti-pattern and let pinch-zoom through
+ * regardless. `touch-action` actually works: it tells the browser which
+ * gestures to hand to the page at all, so `pinch-zoom` never reaches it.
+ */
+html {
+  touch-action: pan-x pan-y;
+}
+
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
 
