@@ -5,7 +5,7 @@ export interface HabitTypeOption {
   readonly value: HabitType;
   /** Label shown in the "Typ" select of the new-habit form. */
   readonly label: string;
-  /** Unit shown next to the numeric value, e.g. "Minuten". Absent for `boolean`. */
+  /** Default unit shown next to the numeric value, e.g. "Minuten". Absent for `boolean`. */
   readonly unit?: string;
 }
 
@@ -16,7 +16,7 @@ export const HABIT_TYPE_OPTIONS: readonly HabitTypeOption[] = [
   { value: 'boolean', label: 'Ja / Nein' },
 ];
 
-/** The unit label for a habit type, or `undefined` for `boolean` habits. */
+/** The default unit label for a habit type, or `undefined` for `boolean` habits. */
 export function habitTypeUnit(type: HabitType): string | undefined {
   return HABIT_TYPE_OPTIONS.find((option) => option.value === type)?.unit;
 }

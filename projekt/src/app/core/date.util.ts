@@ -10,3 +10,17 @@ export function formatDate(date: Date): string {
 export function today(): string {
   return formatDate(new Date());
 }
+
+/** "YYYY-MM-DD" dates from this week's Monday through `date`, inclusive. */
+export function datesThisWeekUpTo(date: Date): string[] {
+  const weekday = date.getDay(); // 0 = Sonntag .. 6 = Samstag
+  const daysSinceMonday = weekday === 0 ? 6 : weekday - 1;
+  const monday = new Date(date);
+  monday.setDate(date.getDate() - daysSinceMonday);
+
+  const dates: string[] = [];
+  for (const cursor = new Date(monday); cursor <= date; cursor.setDate(cursor.getDate() + 1)) {
+    dates.push(formatDate(cursor));
+  }
+  return dates;
+}

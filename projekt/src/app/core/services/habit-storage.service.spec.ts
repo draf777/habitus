@@ -102,4 +102,32 @@ describe('HabitStorageService', () => {
     expect((await service.getEntry(habit.id, '2026-09-03'))?.value).toBe(10);
     expect((await service.getEntry(habit.id, '2026-09-04'))?.value).toBe(25);
   });
+
+  it('updates a habit while keeping its id and createdAt', async () => {
+    const habit = await service.addHabit({ name: 'Lesen', type: 'duration_min', goal: 30 });
+
+    const updated = await service.updateHabit(habit.id, { name: 'Lesen (abends)', type: 'duration_min', goal: 45 });
+
+    expect(updated.id).toBe(habit.id);
+    expect(updated.createdAt).toBe(habit.createdAt);
+    expect(updated.name).toBe('Lesen (abends)');
+    expect(updated.goal).toBe(45);
+    expect(await service.getHabits()).toEqual([updated]);
+  });
+
+  it('rejects updating a habit that does not exist', async () => {
+    await expect(service.updateHabit('missing', { name: 'X', type: 'boolean' })).rejects.toThrow();
+  });
+
+  it('returns every recorded entry for a habit, across all days', async () => {
+    const habit = await service.addHabit({ name: 'Lesen', type: 'duration_min', goal: 30 });
+    const other = await service.addHabit({ name: 'Meditation', type: 'boolean' });
+    await service.setEntry(habit.id, '2026-09-03', 10);
+    await service.setEntry(habit.id, '2026-09-04', 25);
+    await service.setEntry(other.id, '2026-09-04', 1);
+
+    const entries = await service.getEntriesForHabit(habit.id);
+
+    expect(entries.map((entry) => entry.date).sort()).toEqual(['2026-09-03', '2026-09-04']);
+  });
 });

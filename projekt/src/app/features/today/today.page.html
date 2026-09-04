@@ -2,7 +2,7 @@
   <ion-toolbar>
     <ion-title>Heute</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="showForm.set(true)" aria-label="Neues Habit">
+      <ion-button (click)="formMode.set('new')" aria-label="Neues Habit">
         <ion-icon slot="icon-only" name="add-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -18,27 +18,55 @@
 
   <ion-list [inset]="true">
     <ion-list-header>
-      <ion-label>Deine Habits</ion-label>
-      <ion-note slot="end">{{ doneCount() }} / {{ habits().length }}</ion-note>
+      <ion-label>Noch offen</ion-label>
+      <ion-note slot="end">{{ openHabits().length }}</ion-note>
     </ion-list-header>
 
-    @for (habit of habits(); track habit.id) {
+    @for (habit of openHabits(); track habit.id) {
       <app-habit-item
         [habit]="habit"
         [value]="valueFor(habit.id)"
+        [weeklyProgress]="weeklyProgressFor(habit)"
         (valueChange)="onValueChange(habit, $event)"
-        (remove)="onDelete(habit)"
+        (edit)="formMode.set(habit)"
+        (remove)="confirmDelete(habit)"
       ></app-habit-item>
     } @empty {
-      <ion-item lines="none">
-        <ion-label class="ion-text-wrap">Noch keine Habits. Leg dein erstes über das Plus oben an.</ion-label>
-      </ion-item>
+      @if (habits().length > 0) {
+        <ion-item lines="none">
+          <ion-label>Alles für heute erledigt! 🎉</ion-label>
+        </ion-item>
+      } @else {
+        <ion-item lines="none">
+          <ion-label class="ion-text-wrap">Noch keine Habits. Leg dein erstes über das Plus oben an.</ion-label>
+        </ion-item>
+      }
     }
   </ion-list>
 
-  <ion-modal [isOpen]="showForm()" (didDismiss)="showForm.set(false)">
-    <ng-template>
-      <app-new-habit-form (save)="onSave($event)" (canceled)="showForm.set(false)"></app-new-habit-form>
-    </ng-template>
-  </ion-modal>
+  @if (doneHabits().length > 0) {
+    <ion-list [inset]="true">
+      <ion-list-header>
+        <ion-label>Erledigt</ion-label>
+        <ion-note slot="end">{{ doneHabits().length }}</ion-note>
+      </ion-list-header>
+
+      @for (habit of doneHabits(); track habit.id) {
+        <app-habit-item
+          [habit]="habit"
+          [value]="valueFor(habit.id)"
+          [weeklyProgress]="weeklyProgressFor(habit)"
+          (valueChange)="onValueChange(habit, $event)"
+          (edit)="formMode.set(habit)"
+          (remove)="confirmDelete(habit)"
+        ></app-habit-item>
+      }
+    </ion-list>
+  }
 </ion-content>
+
+<ion-modal [isOpen]="formMode() !== null" (didDismiss)="formMode.set(null)">
+  <ng-template>
+    <app-new-habit-form [habit]="editingHabit()" (save)="onSave($event)" (canceled)="formMode.set(null)"></app-new-habit-form>
+  </ng-template>
+</ion-modal>

@@ -10,9 +10,30 @@ Aktuelle Version.
 
 - Datenmodell (Habit, HabitEntry, Todo) + Ionic-Storage-Service
 - "Neues Habit"-Formular mit Validierung (Name, Typ, Tagesziel)
-- Tageseingabe pro Habit-Typ (Minuten/Stunden/Anzahl/Ja-Nein), persistiert
+- Tageseingabe pro Habit-Typ (Minuten/Stunden/Anzahl/Ja-Nein) mit +/- Buttons und direkt editierbarem Wert (auch Dezimalzahlen), persistiert
+- Icon-Auswahl beim Anlegen eines Habits (25 vorgeschlagene Icons)
+- "Heute" zeigt zwei Bereiche: "Noch offen" und "Erledigt"
+- Meldung, sobald ein Habit sein Tagesziel erreicht
+- Bestätigung vor dem Löschen eines Habits
+- Habit bearbeiten (Typ und Häufigkeit danach nicht mehr änderbar)
+- Häufigkeit "Täglich" oder "X-mal pro Woche" (z. B. "Gym, 3x pro Woche"); bei Wochen-Habits entfällt das Tagesziel
+- Erweiterte Einstellungen beim Anlegen/Bearbeiten: eigene Schrittgrösse, eigene Einheit, Farbe
+- Wochenfortschritt ("1 / 3x diese Woche") auf "Heute", bei Wochen-Habits
 - Habit löschen
 - Erste Unit-Tests (Storage-Service, Formular-Validatoren)
+
+### Changed
+
+- Zahlen-Eingabe: kein Browser-Spinner mehr, dafür überall direkt tippbare Zahlenfelder
+- "Erweiterte Einstellungen" optisch an den Rest der App angeglichen (Karten-Look statt lose Felder)
+- Ja/Nein-Habits: kompakter Kreis-Button zum Abhaken statt Toggle-Schalter/Checkbox
+
+### Fixed
+
+- Farb-Auswahl war beim ersten Rendern kurz oval statt rund (Web-Component-Hydration-Timing)
+- Grauer Streifen unter den "Erweiterte Einstellungen", wenn geöffnet
+- "Abbrechen" und "Speichern" sahen unterschiedlich fett aus
+- Zu wenig Abstand bei den Hinweisen "... kann nachträglich nicht mehr geändert werden."
 
 ## [0.1.0] - 2026-09-03
 

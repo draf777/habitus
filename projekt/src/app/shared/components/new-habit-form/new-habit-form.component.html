@@ -1,51 +1,156 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Neues Habit</ion-title>
+    <ion-title>{{ isEditing() ? 'Habit bearbeiten' : 'Neues Habit' }}</ion-title>
     <ion-buttons slot="start">
       <ion-button (click)="canceled.emit()">Abbrechen</ion-button>
     </ion-buttons>
     <ion-buttons slot="end">
-      <ion-button strong="true" (click)="submit()">Speichern</ion-button>
+      <ion-button (click)="submit()">Speichern</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
   <form [formGroup]="form" (ngSubmit)="submit()">
-    <ion-item>
-      <ion-label position="stacked">Name</ion-label>
-      <ion-input formControlName="name" type="text" autocomplete="off" placeholder="z. B. Meditation"></ion-input>
-    </ion-item>
+    <ion-list [inset]="true">
+      <ion-item>
+        <ion-label position="stacked">Name</ion-label>
+        <ion-input formControlName="name" type="text" autocomplete="off" placeholder="z. B. Meditation"></ion-input>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-label>Häufigkeit</ion-label>
+      </ion-item>
+      <ion-item [lines]="isEditing() ? 'full' : 'inset'">
+        <ion-segment formControlName="frequency">
+          <ion-segment-button value="daily">
+            <ion-label>Täglich</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="weekly">
+            <ion-label>Pro Woche</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </ion-item>
+      @if (isEditing()) {
+        <ion-item lines="inset">
+          <ion-note class="ion-text-wrap locked-note">Die Häufigkeit kann nachträglich nicht mehr geändert werden.</ion-note>
+        </ion-item>
+      }
+
+      @if (selectedFrequency() === 'daily') {
+        <ion-item>
+          <ion-label position="stacked">Typ</ion-label>
+          <ion-select formControlName="type" interface="popover">
+            @for (option of typeOptions; track option.value) {
+              <ion-select-option [value]="option.value">{{ option.label }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+
+        @if (selectedType() !== 'boolean') {
+          <ion-item [lines]="isEditing() ? 'full' : 'inset'">
+            <ion-label position="stacked">Tagesziel</ion-label>
+            <ion-input formControlName="goal" type="text" inputmode="decimal" placeholder="z. B. 20"></ion-input>
+          </ion-item>
+        }
+        @if (isEditing()) {
+          <ion-item lines="inset">
+            <ion-note class="ion-text-wrap locked-note">Der Typ kann nachträglich nicht mehr geändert werden.</ion-note>
+          </ion-item>
+        }
+      } @else {
+        <ion-item lines="inset">
+          <ion-label position="stacked">Wie oft pro Woche?</ion-label>
+          <ion-input formControlName="weeklyGoal" type="text" inputmode="numeric" placeholder="z. B. 3"></ion-input>
+        </ion-item>
+      }
+    </ion-list>
+
     @if (form.controls.name.touched && form.controls.name.hasError('required')) {
-      <ion-note color="danger" class="ion-padding-start">Name ist erforderlich.</ion-note>
+      <ion-note color="danger" class="form-note">Name ist erforderlich.</ion-note>
     }
     @if (form.controls.name.touched && form.controls.name.hasError('minlength')) {
-      <ion-note color="danger" class="ion-padding-start">Name muss mindestens 2 Zeichen haben.</ion-note>
+      <ion-note color="danger" class="form-note">Name muss mindestens 2 Zeichen haben.</ion-note>
     }
     @if (form.controls.name.touched && form.controls.name.hasError('maxlength')) {
-      <ion-note color="danger" class="ion-padding-start">Name darf höchstens 30 Zeichen haben.</ion-note>
+      <ion-note color="danger" class="form-note">Name darf höchstens 30 Zeichen haben.</ion-note>
+    }
+    @if (form.controls.goal.touched && form.hasError('goalRequired')) {
+      <ion-note color="danger" class="form-note">Tagesziel ist erforderlich.</ion-note>
+    }
+    @if (form.controls.goal.touched && form.hasError('goalTooSmall')) {
+      <ion-note color="danger" class="form-note">Tagesziel muss mindestens 1 sein.</ion-note>
+    }
+    @if (form.controls.weeklyGoal.touched && form.hasError('weeklyGoalRequired')) {
+      <ion-note color="danger" class="form-note">Wie oft pro Woche ist erforderlich.</ion-note>
+    }
+    @if (form.controls.weeklyGoal.touched && form.hasError('weeklyGoalOutOfRange')) {
+      <ion-note color="danger" class="form-note">Muss zwischen 1 und 7 liegen.</ion-note>
     }
 
-    <ion-item>
-      <ion-label position="stacked">Typ</ion-label>
-      <ion-select formControlName="type" interface="popover">
-        @for (option of typeOptions; track option.value) {
-          <ion-select-option [value]="option.value">{{ option.label }}</ion-select-option>
-        }
-      </ion-select>
-    </ion-item>
+    <ion-label class="section-label">Icon (optional)</ion-label>
+    <div class="swatch-grid">
+      @for (option of iconOptions; track option.name) {
+        <ion-button
+          class="swatch-grid__icon"
+          fill="clear"
+          shape="round"
+          size="small"
+          [color]="selectedIcon() === option.name ? 'primary' : 'medium'"
+          (click)="selectIcon(option.name)"
+          [attr.aria-pressed]="selectedIcon() === option.name"
+          [attr.aria-label]="option.label"
+        >
+          <ion-icon slot="icon-only" [name]="option.name"></ion-icon>
+        </ion-button>
+      }
+    </div>
 
-    @if (selectedType() !== 'boolean') {
-      <ion-item>
-        <ion-label position="stacked">Tagesziel</ion-label>
-        <ion-input formControlName="goal" type="number" min="1" placeholder="z. B. 20"></ion-input>
-      </ion-item>
-      @if (form.controls.goal.touched && form.hasError('goalRequired')) {
-        <ion-note color="danger" class="ion-padding-start">Tagesziel ist erforderlich.</ion-note>
-      }
-      @if (form.controls.goal.touched && form.hasError('goalTooSmall')) {
-        <ion-note color="danger" class="ion-padding-start">Tagesziel muss mindestens 1 sein.</ion-note>
-      }
-    }
+    <ion-accordion-group class="advanced-settings">
+      <ion-list [inset]="true">
+        <ion-accordion value="advanced">
+          <ion-item slot="header" lines="none">
+            <ion-label>Erweiterte Einstellungen</ion-label>
+          </ion-item>
+
+          <div slot="content">
+            @if (selectedFrequency() === 'daily' && selectedType() !== 'boolean') {
+              <ion-item>
+                <ion-label position="stacked">Schrittgrösse</ion-label>
+                <ion-input formControlName="step" type="text" inputmode="decimal" placeholder="1"></ion-input>
+              </ion-item>
+              @if (form.controls.step.touched && form.controls.step.hasError('min')) {
+                <ion-note color="danger" class="form-note">Schrittgrösse muss mindestens 1 sein.</ion-note>
+              }
+
+              <ion-item lines="none">
+                <ion-label position="stacked">Eigene Einheit</ion-label>
+                <ion-input formControlName="unit" type="text" [placeholder]="unitPlaceholder()"></ion-input>
+              </ion-item>
+            }
+
+            <ion-label class="section-label section-label--inset">Farbe (optional)</ion-label>
+            <div class="swatch-grid swatch-grid--inset">
+              @for (color of colorOptions; track color) {
+                <span class="swatch-grid__color-wrap" [style.background]="color">
+                  <ion-button
+                    class="swatch-grid__color"
+                    fill="clear"
+                    size="small"
+                    (click)="selectColor(color)"
+                    [attr.aria-pressed]="selectedColor() === color"
+                    [attr.aria-label]="'Farbe ' + color"
+                  >
+                    @if (selectedColor() === color) {
+                      <ion-icon slot="icon-only" name="checkmark-outline"></ion-icon>
+                    }
+                  </ion-button>
+                </span>
+              }
+            </div>
+          </div>
+        </ion-accordion>
+      </ion-list>
+    </ion-accordion-group>
   </form>
 </ion-content>

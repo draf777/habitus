@@ -45,6 +45,22 @@ export class HabitStorageService {
     return habit;
   }
 
+  /** Updates an existing habit's fields, keeping its `id` and `createdAt`. */
+  async updateHabit(id: string, changes: Omit<Habit, 'id' | 'createdAt'>): Promise<Habit> {
+    await this.ensureReady();
+    const habits = await this.getHabits();
+    const index = habits.findIndex((habit) => habit.id === id);
+    if (index === -1) {
+      throw new Error(`Habit ${id} does not exist`);
+    }
+
+    const updated: Habit = { ...habits[index], ...changes };
+    const next = [...habits];
+    next[index] = updated;
+    await this.storage.set(HABITS_KEY, next);
+    return updated;
+  }
+
   /** Removes a habit together with all of its recorded entries. */
   async deleteHabit(id: string): Promise<void> {
     await this.ensureReady();
@@ -78,6 +94,13 @@ export class HabitStorageService {
     const next = existing ? entries.map((e) => (e.id === entry.id ? entry : e)) : [...entries, entry];
     await this.storage.set(ENTRIES_KEY, next);
     return entry;
+  }
+
+  /** All recorded entries for one habit, across every day. */
+  async getEntriesForHabit(habitId: string): Promise<HabitEntry[]> {
+    await this.ensureReady();
+    const entries = await this.getAllEntries();
+    return entries.filter((entry) => entry.habitId === habitId);
   }
 
   private async getAllEntries(): Promise<HabitEntry[]> {

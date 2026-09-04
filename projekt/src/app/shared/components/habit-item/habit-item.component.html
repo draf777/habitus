@@ -12,27 +12,66 @@
     @if (habit().type !== 'boolean') {
       <p>Ziel: {{ habit().goal }} {{ unit() }}</p>
     }
+    @if (weeklyProgress(); as weekly) {
+      <p>{{ weekly.done }} / {{ weekly.goal }}x diese Woche</p>
+    }
   </ion-label>
 
   @if (habit().type === 'boolean') {
-    <ion-toggle
+    <ion-button
       slot="end"
-      [checked]="value() === 1"
-      (ionChange)="onToggleChange($event.detail.checked)"
+      fill="clear"
+      size="small"
+      [color]="value() === 1 ? 'success' : 'medium'"
+      (click)="onCheckedChange(value() !== 1)"
+      [attr.aria-pressed]="value() === 1"
       [attr.aria-label]="habit().name + ' erledigt'"
-    ></ion-toggle>
+    >
+      <ion-icon slot="icon-only" [name]="value() === 1 ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+    </ion-button>
   } @else {
+    <ion-button
+      slot="end"
+      class="habit-item__nudge"
+      fill="clear"
+      size="small"
+      (click)="nudge(-1)"
+      [attr.aria-label]="habit().name + ' verringern'"
+    >
+      <ion-icon slot="icon-only" name="remove-circle-outline"></ion-icon>
+    </ion-button>
+
     <ion-input
       slot="end"
       class="habit-item__value"
-      type="number"
-      min="0"
-      inputmode="numeric"
+      type="text"
+      inputmode="decimal"
       [value]="value()"
       (ionChange)="onNumberChange($event.detail.value)"
       [attr.aria-label]="habit().name + ' Wert heute'"
     ></ion-input>
+
+    <ion-button
+      slot="end"
+      class="habit-item__nudge"
+      fill="clear"
+      size="small"
+      (click)="nudge(1)"
+      [attr.aria-label]="habit().name + ' erhöhen'"
+    >
+      <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
+    </ion-button>
   }
+
+  <ion-button
+    slot="end"
+    fill="clear"
+    color="medium"
+    (click)="edit.emit()"
+    [attr.aria-label]="'Habit ' + habit().name + ' bearbeiten'"
+  >
+    <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+  </ion-button>
 
   <ion-button
     slot="end"
