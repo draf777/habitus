@@ -11,9 +11,9 @@ cache:
 .node_job:
   tags:
     - pullpolicy
+    - myrunner
   image:
     name: node:26
-    pull_policy: if-not-present
   before_script:
     - cd $CODE_DIR
     - npm ci
@@ -40,6 +40,8 @@ build_app:
 
 deploy_app:
   stage: deploy
+  tags:
+    - myrunner
   image: kroniak/ssh-client
   needs: ["build_app"]
   script:
