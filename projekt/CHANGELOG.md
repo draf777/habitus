@@ -27,6 +27,7 @@ Aktuelle Version.
 - Zahlen-Eingabe: kein Browser-Spinner mehr, dafür überall direkt tippbare Zahlenfelder
 - "Erweiterte Einstellungen" optisch an den Rest der App angeglichen (Karten-Look statt lose Felder)
 - Ja/Nein-Habits: kompakter Kreis-Button zum Abhaken statt Toggle-Schalter/Checkbox
+- Bearbeiten/Löschen: auf Touch-Geräten Wisch-Aktionen (nach links wischen, kein Versehen-Tippen, mehr Platz für den Namen); auf Geräten mit Maus weiterhin feste, sichtbare Buttons, da Wischen dort nicht nativ wirkt
 
 ### Fixed
 
@@ -34,6 +35,7 @@ Aktuelle Version.
 - Grauer Streifen unter den "Erweiterte Einstellungen", wenn geöffnet
 - "Abbrechen" und "Speichern" sahen unterschiedlich fett aus
 - Zu wenig Abstand bei den Hinweisen "... kann nachträglich nicht mehr geändert werden."
+- Abhaken-Button in App-Akzentfarbe statt generischem Grün, passt jetzt zum Rest der App
 
 ## [0.1.0] - 2026-09-03
 

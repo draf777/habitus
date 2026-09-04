@@ -1,4 +1,4 @@
-<ion-item lines="full">
+<ng-template #rowContent>
   <ion-icon
     slot="start"
     aria-hidden="true"
@@ -22,7 +22,7 @@
       slot="end"
       fill="clear"
       size="small"
-      [color]="value() === 1 ? 'success' : 'medium'"
+      [color]="value() === 1 ? 'primary' : 'medium'"
       (click)="onCheckedChange(value() !== 1)"
       [attr.aria-pressed]="value() === 1"
       [attr.aria-label]="habit().name + ' erledigt'"
@@ -62,24 +62,55 @@
       <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
     </ion-button>
   }
+</ng-template>
 
-  <ion-button
-    slot="end"
-    fill="clear"
-    color="medium"
-    (click)="edit.emit()"
-    [attr.aria-label]="'Habit ' + habit().name + ' bearbeiten'"
-  >
-    <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
-  </ion-button>
+@if (isMobile()) {
+  <!-- Touch viewport: edit/delete are swipe actions, keeping the row itself compact. -->
+  <ion-item-sliding #slidingItem>
+    <ion-item lines="full">
+      <ng-container [ngTemplateOutlet]="rowContent"></ng-container>
+    </ion-item>
 
-  <ion-button
-    slot="end"
-    fill="clear"
-    color="medium"
-    (click)="remove.emit()"
-    [attr.aria-label]="'Habit ' + habit().name + ' löschen'"
-  >
-    <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-  </ion-button>
-</ion-item>
+    <ion-item-options side="end">
+      <ion-item-option
+        color="medium"
+        (click)="onSwipeEdit(slidingItem)"
+        [attr.aria-label]="'Habit ' + habit().name + ' bearbeiten'"
+      >
+        <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+      </ion-item-option>
+      <ion-item-option
+        color="danger"
+        (click)="onSwipeRemove(slidingItem)"
+        [attr.aria-label]="'Habit ' + habit().name + ' löschen'"
+      >
+        <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+      </ion-item-option>
+    </ion-item-options>
+  </ion-item-sliding>
+} @else {
+  <!-- Desktop (mouse): swiping isn't discoverable, so edit/delete stay as plain visible buttons. -->
+  <ion-item lines="full">
+    <ng-container [ngTemplateOutlet]="rowContent"></ng-container>
+
+    <ion-button
+      slot="end"
+      fill="clear"
+      color="medium"
+      (click)="edit.emit()"
+      [attr.aria-label]="'Habit ' + habit().name + ' bearbeiten'"
+    >
+      <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+    </ion-button>
+
+    <ion-button
+      slot="end"
+      fill="clear"
+      color="medium"
+      (click)="remove.emit()"
+      [attr.aria-label]="'Habit ' + habit().name + ' löschen'"
+    >
+      <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+    </ion-button>
+  </ion-item>
+}

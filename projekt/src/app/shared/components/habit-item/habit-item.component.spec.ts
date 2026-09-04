@@ -1,12 +1,28 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Platform } from '@ionic/angular';
+import { Subject } from 'rxjs';
 
 import { HabitItemComponent } from './habit-item.component';
 import { Habit } from '../../../models/habit.model';
 
+/** Stand-in for Ionic's Platform service, so tests control mobile/desktop without touching the real window. */
+class FakePlatform {
+  readonly resize = new Subject<void>();
+  constructor(public mobile: boolean) {}
+  is(name: string): boolean {
+    return name === 'mobile' && this.mobile;
+  }
+}
+
 describe('HabitItemComponent', () => {
   let fixture: ComponentFixture<HabitItemComponent>;
 
-  function setup(habit: Habit, value = 0): void {
+  /** Defaults to a mobile viewport, since most tests exercise content shared by both layouts. */
+  function setup(habit: Habit, value = 0, mobile = true): void {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [{ provide: Platform, useValue: new FakePlatform(mobile) }],
+    });
     fixture = TestBed.createComponent(HabitItemComponent);
     fixture.componentRef.setInput('habit', habit);
     fixture.componentRef.setInput('value', value);
@@ -166,23 +182,92 @@ describe('HabitItemComponent', () => {
     expect(iconWithHabitIcon.name).toBe('barbell-outline');
   });
 
-  it('emits edit when the edit button is clicked', () => {
-    setup({ id: 'meditation', name: 'Meditation', type: 'boolean', createdAt: '2026-09-04T00:00:00.000Z' });
+  describe('on a mobile viewport', () => {
+    it('renders swipe-revealed edit and delete options, no always-visible buttons', () => {
+      setup({ id: 'meditation', name: 'Meditation', type: 'boolean', createdAt: '2026-09-04T00:00:00.000Z' }, 0, true);
 
-    const edited = vi.fn();
-    fixture.componentInstance.edit.subscribe(edited);
+      expect(fixture.nativeElement.querySelector('ion-item-sliding')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('ion-item-option[aria-label*="bearbeiten"]')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('ion-item-option[aria-label*="löschen"]')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('ion-button[aria-label*="bearbeiten"]')).toBeNull();
+    });
 
-    fixture.nativeElement.querySelector('ion-button[aria-label*="bearbeiten"]').click();
-    expect(edited).toHaveBeenCalled();
+    it('emits edit and closes the sliding item when the swipe edit action fires', () => {
+      setup({ id: 'meditation', name: 'Meditation', type: 'boolean', createdAt: '2026-09-04T00:00:00.000Z' }, 0, true);
+
+      const edited = vi.fn();
+      fixture.componentInstance.edit.subscribe(edited);
+      const closed = vi.fn().mockResolvedValue(undefined);
+
+      fixture.componentInstance.onSwipeEdit({ close: closed } as never);
+
+      expect(edited).toHaveBeenCalled();
+      expect(closed).toHaveBeenCalled();
+    });
+
+    it('emits remove and closes the sliding item when the swipe delete action fires', () => {
+      setup({ id: 'meditation', name: 'Meditation', type: 'boolean', createdAt: '2026-09-04T00:00:00.000Z' }, 0, true);
+
+      const removed = vi.fn();
+      fixture.componentInstance.remove.subscribe(removed);
+      const closed = vi.fn().mockResolvedValue(undefined);
+
+      fixture.componentInstance.onSwipeRemove({ close: closed } as never);
+
+      expect(removed).toHaveBeenCalled();
+      expect(closed).toHaveBeenCalled();
+    });
   });
 
-  it('emits remove when the delete button is clicked', () => {
-    setup({ id: 'meditation', name: 'Meditation', type: 'boolean', createdAt: '2026-09-04T00:00:00.000Z' });
+  describe('on a desktop viewport', () => {
+    it('renders always-visible edit/delete buttons instead of swipe actions', () => {
+      setup({ id: 'meditation', name: 'Meditation', type: 'boolean', createdAt: '2026-09-04T00:00:00.000Z' }, 0, false);
 
-    const removed = vi.fn();
-    fixture.componentInstance.remove.subscribe(removed);
+      expect(fixture.nativeElement.querySelector('ion-item-sliding')).toBeNull();
+      expect(fixture.nativeElement.querySelector('ion-button[aria-label*="bearbeiten"]')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('ion-button[aria-label*="löschen"]')).toBeTruthy();
+    });
 
-    fixture.nativeElement.querySelector('ion-button[aria-label*="löschen"]').click();
-    expect(removed).toHaveBeenCalled();
+    it('emits edit when the edit button is clicked', () => {
+      setup({ id: 'meditation', name: 'Meditation', type: 'boolean', createdAt: '2026-09-04T00:00:00.000Z' }, 0, false);
+
+      const edited = vi.fn();
+      fixture.componentInstance.edit.subscribe(edited);
+
+      fixture.nativeElement.querySelector('ion-button[aria-label*="bearbeiten"]').click();
+      expect(edited).toHaveBeenCalled();
+    });
+
+    it('emits remove when the delete button is clicked', () => {
+      setup({ id: 'meditation', name: 'Meditation', type: 'boolean', createdAt: '2026-09-04T00:00:00.000Z' }, 0, false);
+
+      const removed = vi.fn();
+      fixture.componentInstance.remove.subscribe(removed);
+
+      fixture.nativeElement.querySelector('ion-button[aria-label*="löschen"]').click();
+      expect(removed).toHaveBeenCalled();
+    });
+  });
+
+  it('switches from desktop to mobile layout when the platform resizes', () => {
+    TestBed.configureTestingModule({
+      providers: [{ provide: Platform, useValue: new FakePlatform(false) }],
+    });
+    fixture = TestBed.createComponent(HabitItemComponent);
+    fixture.componentRef.setInput('habit', {
+      id: 'meditation',
+      name: 'Meditation',
+      type: 'boolean',
+      createdAt: '2026-09-04T00:00:00.000Z',
+    });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('ion-item-sliding')).toBeNull();
+
+    const platform = TestBed.inject(Platform) as unknown as FakePlatform;
+    platform.mobile = true;
+    platform.resize.next();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('ion-item-sliding')).toBeTruthy();
   });
 });
