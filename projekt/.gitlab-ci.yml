@@ -1,6 +1,13 @@
 variables:
   CODE_DIR: ./projekt
 
+cache:
+  key:
+    files:
+      - $CODE_DIR/package-lock.json
+  paths:
+    - $CODE_DIR/node_modules/
+
 .node_job:
   tags:
     - pullpolicy
