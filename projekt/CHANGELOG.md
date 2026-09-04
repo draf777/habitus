@@ -2,9 +2,22 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Neueste Version zuoberst.
 
-## [0.2.0] - 2026-09-04
+## [0.3.1] - 2026-09-04
 
 Aktuelle Version.
+
+### Added
+
+- Todo-Tab: erfassen, abhaken, löschen, persistiert
+- Light/Dark-Mode + zwei Farbschemen (Ocean, Sunset), Einstellung persistiert
+- Responsives Layout für Tablet/Landscape geprüft
+- Weitere Unit-Tests (Todo-Service, Settings-Service)
+
+### Fixed
+
+- Neue App-Version wurde zwar im Hintergrund geladen, aber nie aktiviert, solange die App offen blieb; jetzt Hinweis mit "Neu laden"-Option, sobald eine neue Version bereitsteht
+
+## [0.2.0] - 2026-09-04
 
 ### Added
 

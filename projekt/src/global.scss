@@ -33,5 +33,27 @@
  */
 
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import '@ionic/angular/css/palettes/dark.system.css';
+@import '@ionic/angular/css/palettes/dark.class.css';
+/* @import "@ionic/angular/css/palettes/dark.system.css"; */
+
+/**
+ * Tablet width / landscape
+ * -----------------------------------------------------
+ * Every page here is a single column of inset cards (habits, todos, stats,
+ * about) — there is no natural multi-column content to break into a grid.
+ * At Ionic's own "md" breakpoint (768px, e.g. a tablet or a landscape phone)
+ * they'd otherwise stretch edge to edge and become hard to scan, so they get
+ * capped to a readable width and centered instead.
+ */
+@media (min-width: 768px) {
+  ion-list.list-inset,
+  .week-summary,
+  .intro {
+    max-width: 640px;
+    // `!important`: Ionic's own shadow-DOM styles already set a margin on
+    // `.list-inset` with higher specificity than a plain external selector
+    // can reach, so a normal override is silently ignored.
+    margin-inline: auto !important;
+  }
+}
+

@@ -33,8 +33,8 @@
       <ion-label class="ion-text-wrap">
         <h2>Status</h2>
         <p>
-          „Heute“ funktioniert: Habits anlegen, löschen und Tageswerte eintragen wird gespeichert.
-          „Statistik“ und „Todos“ zeigen weiterhin Beispieldaten.
+          „Heute“ und „Todos“ funktionieren: Habits bzw. Aufgaben anlegen, abhaken/eintragen und löschen wird
+          gespeichert. „Statistik“ zeigt weiterhin Beispieldaten.
         </p>
       </ion-label>
     </ion-item>
@@ -45,6 +45,49 @@
 
     <ion-item [href]="info.repositoryUrl" target="_blank" rel="noopener" [detail]="true">
       <ion-label>Repository</ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-list [inset]="true">
+    <ion-list-header>Darstellung</ion-list-header>
+
+    <ion-item lines="none">
+      <ion-label>Design</ion-label>
+    </ion-item>
+    <ion-item lines="inset">
+      <ion-segment
+        [value]="settings.theme()"
+        (ionChange)="onThemeChange($any($event.detail.value))"
+        aria-label="Design"
+      >
+        <ion-segment-button value="light">
+          <ion-label>Hell</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="dark">
+          <ion-label>Dunkel</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="system">
+          <ion-label>System</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </ion-item>
+
+    <ion-item lines="none">
+      <ion-label>Farbschema</ion-label>
+    </ion-item>
+    <ion-item lines="full">
+      <ion-segment
+        [value]="settings.colorScheme()"
+        (ionChange)="onColorSchemeChange($any($event.detail.value))"
+        aria-label="Farbschema"
+      >
+        <ion-segment-button value="ocean">
+          <ion-label>Ocean</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="sunset">
+          <ion-label>Sunset</ion-label>
+        </ion-segment-button>
+      </ion-segment>
     </ion-item>
   </ion-list>
 </ion-content>

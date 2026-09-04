@@ -11,15 +11,36 @@
     </ion-toolbar>
   </ion-header>
 
-  <app-demo-notice
-    text="Die Aufgaben sind Beispieldaten. Abhaken, Erfassen und Löschen funktionieren in dieser Version noch nicht."
-  ></app-demo-notice>
+  <ion-list [inset]="true">
+    <ion-item lines="none">
+      <ion-input
+        placeholder="Neue Aufgabe für heute"
+        autocomplete="off"
+        [value]="newTodoText()"
+        (ionInput)="newTodoText.set($event.detail.value ?? '')"
+        (keyup.enter)="addTodo()"
+        aria-label="Neue Aufgabe"
+      ></ion-input>
+      <ion-button
+        slot="end"
+        fill="clear"
+        [disabled]="!newTodoText().trim()"
+        (click)="addTodo()"
+        aria-label="Aufgabe hinzufügen"
+      >
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-list>
 
   <ion-list [inset]="true">
-    <ion-list-header>Offen</ion-list-header>
+    <ion-list-header>
+      <ion-label>Offen</ion-label>
+      <ion-note slot="end">{{ openTodos().length }}</ion-note>
+    </ion-list-header>
 
     @for (todo of openTodos(); track todo.id) {
-      <app-todo-item [todo]="todo"></app-todo-item>
+      <app-todo-item [todo]="todo" (toggled)="onToggle(todo)" (remove)="onRemove(todo)"></app-todo-item>
     } @empty {
       <ion-note class="empty-hint">Nichts mehr offen.</ion-note>
     }
@@ -27,10 +48,13 @@
 
   @if (doneTodos().length > 0) {
     <ion-list [inset]="true">
-      <ion-list-header>Erledigt</ion-list-header>
+      <ion-list-header>
+        <ion-label>Erledigt</ion-label>
+        <ion-note slot="end">{{ doneTodos().length }}</ion-note>
+      </ion-list-header>
 
       @for (todo of doneTodos(); track todo.id) {
-        <app-todo-item [todo]="todo"></app-todo-item>
+        <app-todo-item [todo]="todo" (toggled)="onToggle(todo)" (remove)="onRemove(todo)"></app-todo-item>
       }
     </ion-list>
   }

@@ -1,23 +1,30 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import {
+  IonButton,
   IonContent,
   IonHeader,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonLabel,
   IonList,
   IonListHeader,
   IonNote,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { addOutline } from 'ionicons/icons';
 
-import { DEMO_TODOS } from '../../core/data/demo-todos';
-import { Todo } from '../../core/models/todo.model';
-import { DemoNoticeComponent } from '../../shared/components/demo-notice/demo-notice.component';
+import { today } from '../../core/date.util';
+import { TodoStorageService } from '../../core/services/todo-storage.service';
+import { Todo } from '../../models/todo.model';
 import { TodoItemComponent } from '../../shared/components/todo-item/todo-item.component';
 
 /**
- * "Todos" — one-off tasks next to the recurring habits.
- *
- * v0.1.0 renders placeholder data from `DEMO_TODOS`.
+ * "Todos" — one-off tasks for today, next to the recurring habits. Backed by
+ * `TodoStorageService`; only today's tasks are shown, since there is
+ * (currently) no UI to pick another day.
  */
 @Component({
   selector: 'app-todos',
@@ -28,21 +35,59 @@ import { TodoItemComponent } from '../../shared/components/todo-item/todo-item.c
     IonHeader,
     IonToolbar,
     IonTitle,
+    IonButton,
+    IonIcon,
+    IonInput,
+    IonItem,
+    IonLabel,
     IonContent,
     IonList,
     IonListHeader,
     IonNote,
-    DemoNoticeComponent,
     TodoItemComponent,
   ],
 })
 export class TodosPage {
-  /** All tasks on the list. */
-  readonly todos = signal<readonly Todo[]>(DEMO_TODOS);
+  private readonly storage = inject(TodoStorageService);
+  private readonly date = today();
 
-  /** The tasks that are still open. */
+  /** Today's tasks. */
+  readonly todos = signal<readonly Todo[]>([]);
+  /** Text currently typed into the "new task" field. */
+  readonly newTodoText = signal('');
+
+  /** Today's tasks that are still open. */
   readonly openTodos = computed(() => this.todos().filter((todo) => !todo.done));
-
-  /** The tasks that are already done. */
+  /** Today's tasks that are already done. */
   readonly doneTodos = computed(() => this.todos().filter((todo) => todo.done));
+
+  constructor() {
+    addIcons({ addOutline });
+    void this.reload();
+  }
+
+  /** Creates a new task for today from `newTodoText`, if it isn't blank. */
+  async addTodo(): Promise<void> {
+    const text = this.newTodoText().trim();
+    if (!text) {
+      return;
+    }
+    await this.storage.addTodo({ text, date: this.date });
+    this.newTodoText.set('');
+    await this.reload();
+  }
+
+  async onToggle(todo: Todo): Promise<void> {
+    await this.storage.setDone(todo.id, !todo.done);
+    await this.reload();
+  }
+
+  async onRemove(todo: Todo): Promise<void> {
+    await this.storage.deleteTodo(todo.id);
+    await this.reload();
+  }
+
+  private async reload(): Promise<void> {
+    this.todos.set(await this.storage.getTodosForDate(this.date));
+  }
 }

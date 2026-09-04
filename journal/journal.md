@@ -24,3 +24,11 @@
 * "Heute"-Tab zeigt jetzt echte, gespeicherte Habits statt Demo-Daten; Statistik und Todos bleiben vorerst Demo.
 * Erste Unit-Tests für Storage-Service und Validatoren geschrieben.
 * Manuell im Browser geprüft: Habit anlegen, Wert eintragen, Reload — Daten bleiben erhalten; Löschen funktioniert.
+
+## 4.9., 18:00
+
+- Todo-Tab implementiert (TodoStorageService, täglich erfassen/abhaken/löschen).
+- Zwei Farbschemen (Ocean: Teal, Sunset: Orange) je in Hell/Dunkel umgesetzt, über SettingsService + CSS-Custom-Properties, Wahl wird persistiert.
+- Entscheidung Theme-Technik: CSS Custom Properties + signal-basierter SettingsService statt separater Angular-Module pro Theme, weil Umschalten so ohne Reload funktioniert.
+- Layout auf Tablet-Breite/Landscape gegengeprüft, Grid-Breakpoints angepasst.
+- v0.3.0 getaggt, live deployed.

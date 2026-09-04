@@ -1,7 +1,7 @@
 /**
  * A single one-off task on the todo list.
  *
- * Definition only for v0.2.0 — persistence and UI land in v0.3.0.
+ * Unlike a `Habit`, a todo is not repeated — it is done once and then gone.
  */
 export interface Todo {
   /** Stable identifier, unique across all todos. */
