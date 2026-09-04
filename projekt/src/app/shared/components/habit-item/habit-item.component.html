@@ -1,15 +1,46 @@
-<ion-item>
-  <ion-icon slot="start" aria-hidden="true" [name]="entry().habit.icon" color="primary"></ion-icon>
+<ion-item lines="full">
+  <ion-icon
+    slot="start"
+    aria-hidden="true"
+    [name]="habit().icon || 'ellipse-outline'"
+    [style.color]="habit().color"
+    [color]="habit().color ? undefined : 'primary'"
+  ></ion-icon>
 
   <ion-label>
-    <h2>{{ entry().habit.title }}</h2>
-    <p>{{ entry().habit.weeklyGoal }}× pro Woche</p>
+    <h2>{{ habit().name }}</h2>
+    @if (habit().type !== 'boolean') {
+      <p>Ziel: {{ habit().goal }} {{ unit() }}</p>
+    }
   </ion-label>
 
-  <ion-checkbox
+  @if (habit().type === 'boolean') {
+    <ion-toggle
+      slot="end"
+      [checked]="value() === 1"
+      (ionChange)="onToggleChange($event.detail.checked)"
+      [attr.aria-label]="habit().name + ' erledigt'"
+    ></ion-toggle>
+  } @else {
+    <ion-input
+      slot="end"
+      class="habit-item__value"
+      type="number"
+      min="0"
+      inputmode="numeric"
+      [value]="value()"
+      (ionChange)="onNumberChange($event.detail.value)"
+      [attr.aria-label]="habit().name + ' Wert heute'"
+    ></ion-input>
+  }
+
+  <ion-button
     slot="end"
-    [checked]="entry().done"
-    [disabled]="true"
-    [attr.aria-label]="entry().habit.title + ' erledigt'"
-  ></ion-checkbox>
+    fill="clear"
+    color="medium"
+    (click)="remove.emit()"
+    [attr.aria-label]="'Habit ' + habit().name + ' löschen'"
+  >
+    <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+  </ion-button>
 </ion-item>

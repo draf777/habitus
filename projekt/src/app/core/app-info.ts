@@ -1,7 +1,7 @@
 /** Static facts about the app, shown on the "Über" page. */
 export const APP_INFO = {
   name: 'Habitus',
-  version: '0.1.0',
+  version: '0.2.0',
   description:
     'Habitus hilft dir, Gewohnheiten aufzubauen und wirklich durchzuziehen. Du legst fest, was du ' +
     'regelmässig tun willst — meditieren, trainieren, lesen, was auch immer — und hakst es jeden Tag ab. ' +

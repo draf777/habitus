@@ -1,0 +1,51 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Neues Habit</ion-title>
+    <ion-buttons slot="start">
+      <ion-button (click)="canceled.emit()">Abbrechen</ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button strong="true" (click)="submit()">Speichern</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <ion-item>
+      <ion-label position="stacked">Name</ion-label>
+      <ion-input formControlName="name" type="text" autocomplete="off" placeholder="z. B. Meditation"></ion-input>
+    </ion-item>
+    @if (form.controls.name.touched && form.controls.name.hasError('required')) {
+      <ion-note color="danger" class="ion-padding-start">Name ist erforderlich.</ion-note>
+    }
+    @if (form.controls.name.touched && form.controls.name.hasError('minlength')) {
+      <ion-note color="danger" class="ion-padding-start">Name muss mindestens 2 Zeichen haben.</ion-note>
+    }
+    @if (form.controls.name.touched && form.controls.name.hasError('maxlength')) {
+      <ion-note color="danger" class="ion-padding-start">Name darf höchstens 30 Zeichen haben.</ion-note>
+    }
+
+    <ion-item>
+      <ion-label position="stacked">Typ</ion-label>
+      <ion-select formControlName="type" interface="popover">
+        @for (option of typeOptions; track option.value) {
+          <ion-select-option [value]="option.value">{{ option.label }}</ion-select-option>
+        }
+      </ion-select>
+    </ion-item>
+
+    @if (selectedType() !== 'boolean') {
+      <ion-item>
+        <ion-label position="stacked">Tagesziel</ion-label>
+        <ion-input formControlName="goal" type="number" min="1" placeholder="z. B. 20"></ion-input>
+      </ion-item>
+      @if (form.controls.goal.touched && form.hasError('goalRequired')) {
+        <ion-note color="danger" class="ion-padding-start">Tagesziel ist erforderlich.</ion-note>
+      }
+      @if (form.controls.goal.touched && form.hasError('goalTooSmall')) {
+        <ion-note color="danger" class="ion-padding-start">Tagesziel muss mindestens 1 sein.</ion-note>
+      }
+    }
+  </form>
+</ion-content>

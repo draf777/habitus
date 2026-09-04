@@ -1,9 +1,8 @@
 /**
- * A habit the user wants to repeat regularly.
+ * A habit as shown on the "Statistik" page.
  *
- * Persistence is not part of v0.1.0 — habits currently come from
- * `demo-habits.ts`. The shape is already the one a storage layer will
- * return, so the UI does not have to change when persistence lands.
+ * That page still renders `demo-habits.ts` — the real, persisted habit shape
+ * lives in `app/models/habit.model.ts` and backs "Heute" since v0.2.0.
  */
 export interface Habit {
   /** Stable identifier, unique across all habits. */
@@ -14,13 +13,6 @@ export interface Habit {
   readonly icon: string;
   /** How many times per week the habit should be done. */
   readonly weeklyGoal: number;
-}
-
-/** A habit together with the state it has on a specific day. */
-export interface HabitEntry {
-  readonly habit: Habit;
-  /** Whether the habit is already checked off for that day. */
-  readonly done: boolean;
 }
 
 /** A habit together with its aggregated numbers for the current week. */
