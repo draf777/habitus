@@ -23,6 +23,7 @@ describe('TodoItemComponent', () => {
     done: false,
     date: '2026-09-04',
     createdAt: '2026-09-04T00:00:00.000Z',
+    order: 1,
   };
 
   function setup(value: Todo, mobile = true): void {
@@ -60,13 +61,54 @@ describe('TodoItemComponent', () => {
     expect(toggled).toHaveBeenCalled();
   });
 
+  it('wraps the text instead of truncating it, via a plain ion-label next to the checkbox', () => {
+    setup(todo);
+
+    const label = fixture.nativeElement.querySelector('ion-label.todo-text');
+    expect(label).not.toBeNull();
+    expect(label.classList).toContain('ion-text-wrap');
+    // The text lives in a sibling ion-label, not inside the checkbox itself,
+    // which is what lets it wrap instead of being clipped by the checkbox's
+    // own (fixed, ellipsis-truncating) label styling.
+    expect(fixture.nativeElement.querySelector('ion-checkbox').textContent.trim()).toBe('');
+  });
+
+  it('renders a URL in the text as a clickable link', () => {
+    setup({ ...todo, text: 'Siehe https://example.com' });
+
+    const link = fixture.nativeElement.querySelector('ion-label.todo-text a');
+    expect(link).not.toBeNull();
+    expect(link.getAttribute('href')).toBe('https://example.com');
+  });
+
+  it('emits toggled when the label text (not a link) is clicked', () => {
+    setup(todo);
+    const toggled = vi.fn();
+    fixture.componentInstance.toggled.subscribe(toggled);
+
+    fixture.nativeElement.querySelector('ion-label.todo-text').click();
+
+    expect(toggled).toHaveBeenCalled();
+  });
+
+  it('does not toggle when a link inside the text is clicked', () => {
+    setup({ ...todo, text: 'Siehe https://example.com' });
+    const toggled = vi.fn();
+    fixture.componentInstance.toggled.subscribe(toggled);
+
+    fixture.nativeElement.querySelector('ion-label.todo-text a').click();
+
+    expect(toggled).not.toHaveBeenCalled();
+  });
+
   describe('on a mobile viewport', () => {
-    it('renders a swipe-revealed delete option, no always-visible button', () => {
+    it('renders a swipe-revealed delete option and a reorder handle, no always-visible button', () => {
       setup(todo, true);
 
       expect(fixture.nativeElement.querySelector('ion-item-sliding')).toBeTruthy();
       expect(fixture.nativeElement.querySelector('ion-item-option[aria-label*="löschen"]')).toBeTruthy();
       expect(fixture.nativeElement.querySelector('ion-button[aria-label*="löschen"]')).toBeNull();
+      expect(fixture.nativeElement.querySelector('ion-reorder')).toBeTruthy();
     });
 
     it('emits remove and closes the sliding item when the swipe delete action fires', () => {
@@ -84,11 +126,12 @@ describe('TodoItemComponent', () => {
   });
 
   describe('on a desktop viewport', () => {
-    it('renders an always-visible delete button instead of a swipe action', () => {
+    it('renders an always-visible delete button and a reorder handle instead of a swipe action', () => {
       setup(todo, false);
 
       expect(fixture.nativeElement.querySelector('ion-item-sliding')).toBeNull();
       expect(fixture.nativeElement.querySelector('ion-button[aria-label*="löschen"]')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('ion-reorder')).toBeTruthy();
     });
 
     it('emits remove when the delete button is clicked', () => {

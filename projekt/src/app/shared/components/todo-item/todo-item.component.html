@@ -1,19 +1,25 @@
 <ng-template #rowContent>
   <ion-checkbox
-    justify="start"
-    labelPlacement="end"
+    slot="start"
     [checked]="todo().done"
     (ionChange)="toggled.emit()"
-  >
-    <ion-label [class.todo-done]="todo().done">{{ todo().text }}</ion-label>
-  </ion-checkbox>
+    [attr.aria-label]="todo().text + ' erledigt'"
+  ></ion-checkbox>
+  <ion-label class="ion-text-wrap todo-text" [class.todo-done]="todo().done" (click)="onLabelClick($event)">
+    @if (dateLabel(); as label) {
+      <p>{{ label }}</p>
+    }
+    <span [innerHTML]="linkedText()"></span>
+  </ion-label>
 </ng-template>
 
 @if (isMobile()) {
-  <!-- Touch viewport: delete is a swipe action, keeping the row itself compact. -->
+  <!-- Touch viewport: delete is a swipe action, keeping the row itself compact; the reorder handle is
+       always visible regardless, since dragging it starts a reorder without competing with the swipe. -->
   <ion-item-sliding #slidingItem>
     <ion-item lines="full">
       <ng-container [ngTemplateOutlet]="rowContent"></ng-container>
+      <ion-reorder slot="end"></ion-reorder>
     </ion-item>
 
     <ion-item-options side="end">
@@ -27,7 +33,7 @@
     </ion-item-options>
   </ion-item-sliding>
 } @else {
-  <!-- Desktop (mouse): swiping isn't discoverable, so delete stays a plain visible button. -->
+  <!-- Desktop (mouse): swiping isn't discoverable, so delete stays a plain visible button next to the reorder handle. -->
   <ion-item lines="full">
     <ng-container [ngTemplateOutlet]="rowContent"></ng-container>
 
@@ -40,5 +46,6 @@
     >
       <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
     </ion-button>
+    <ion-reorder slot="end"></ion-reorder>
   </ion-item>
 }

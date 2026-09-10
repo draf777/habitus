@@ -90,4 +90,40 @@ describe('TodoStorageService', () => {
     expect(grouped.get('2026-09-04')).toEqual([first, second]);
     expect(grouped.get('2026-09-10')).toEqual([third]);
   });
+
+  it('assigns each new todo a later order than the previous one', async () => {
+    const first = await service.addTodo({ text: 'Einkaufen', date: '2026-09-04' });
+    const second = await service.addTodo({ text: 'Mails beantworten', date: '2026-09-04' });
+
+    expect(second.order).toBeGreaterThanOrEqual(first.order);
+  });
+
+  describe('reorderTodos', () => {
+    it('rewrites the order of the given todos to match the given sequence', async () => {
+      const first = await service.addTodo({ text: 'Einkaufen', date: '2026-09-04' });
+      const second = await service.addTodo({ text: 'Mails beantworten', date: '2026-09-04' });
+      const third = await service.addTodo({ text: 'Steuererklärung', date: '2026-09-04' });
+
+      await service.reorderTodos([third.id, first.id, second.id]);
+
+      const todos = await service.getTodos();
+      const byId = new Map(todos.map((todo) => [todo.id, todo]));
+      expect(byId.get(third.id)!.order).toBeLessThan(byId.get(first.id)!.order);
+      expect(byId.get(first.id)!.order).toBeLessThan(byId.get(second.id)!.order);
+    });
+
+    it('leaves todos outside the reordered set untouched', async () => {
+      const first = await service.addTodo({ text: 'Einkaufen', date: '2026-09-04' });
+      const other = await service.addTodo({ text: 'Steuererklärung', date: '2026-09-10' });
+
+      await service.reorderTodos([first.id]);
+
+      const todos = await service.getTodos();
+      expect(todos.find((todo) => todo.id === other.id)).toEqual(other);
+    });
+
+    it('does not fail when reordering an empty list', async () => {
+      await expect(service.reorderTodos([])).resolves.toBeUndefined();
+    });
+  });
 });

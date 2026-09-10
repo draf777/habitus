@@ -2,10 +2,18 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 
 import { StatsPage } from './stats.page';
+import { formatDate } from '../../core/date.util';
 import { HabitStorageService } from '../../core/services/habit-storage.service';
 import { HabitWeekStats, StatsService } from '../../core/services/stats.service';
 import { SettingsService } from '../../core/services/settings.service';
-import { Habit } from '../../models/habit.model';
+import { Habit, HabitEntry } from '../../models/habit.model';
+
+/** "YYYY-MM-DD" for `n` days before today, in local time. */
+function daysAgo(n: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() - n);
+  return formatDate(date);
+}
 
 /** Waits for pending microtasks (e.g. the constructor's async reload) to settle. */
 function flushPromises(): Promise<void> {
@@ -171,5 +179,77 @@ describe('StatsPage', () => {
     await flushPromises();
 
     expect(fixture.componentInstance.selectedHabitId()).toBe('meditation');
+  });
+});
+
+/**
+ * End-to-end: real `StatsService` computing from real recorded entries (only
+ * `HabitStorageService` is faked), so these confirm the streak badge shows
+ * the right number for someone who has actually kept a habit up for a few
+ * days — not just that the page renders whatever number a mock hands it.
+ */
+describe('StatsPage — streak, end-to-end with the real StatsService', () => {
+  let fixture: ComponentFixture<StatsPage>;
+  let entries: HabitEntry[];
+  let habitStorage: { getHabits: ReturnType<typeof vi.fn>; getEntriesForHabit: ReturnType<typeof vi.fn> };
+
+  const habit: Habit = { id: 'meditation', name: 'Meditation', type: 'boolean', createdAt: '2020-01-01T00:00:00.000Z' };
+
+  function setup(): void {
+    habitStorage = {
+      getHabits: vi.fn().mockResolvedValue([habit]),
+      getEntriesForHabit: vi.fn().mockImplementation(() => Promise.resolve(entries)),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        StatsService,
+        { provide: HabitStorageService, useValue: habitStorage },
+        { provide: SettingsService, useValue: { theme: signal('system'), colorScheme: signal('ocean') } },
+      ],
+    });
+
+    fixture = TestBed.createComponent(StatsPage);
+    fixture.detectChanges();
+  }
+
+  it('shows a 3-day streak for a habit done today, yesterday and the day before', async () => {
+    entries = [0, 1, 2].map((n) => ({ id: `e${n}`, habitId: habit.id, date: daysAgo(n), value: 1 }));
+    setup();
+    await flushPromises();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.streak()).toBe(3);
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('3 Tage am Stück');
+  });
+
+  it('shows a 2-day streak for a habit done the last 2 days but not yet today', async () => {
+    entries = [1, 2].map((n) => ({ id: `e${n}`, habitId: habit.id, date: daysAgo(n), value: 1 }));
+    setup();
+    await flushPromises();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.streak()).toBe(2);
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('2 Tage am Stück');
+  });
+
+  it('shows a streak that reaches back further than the 7-day chart', async () => {
+    entries = Array.from({ length: 9 }, (_, n) => ({ id: `e${n}`, habitId: habit.id, date: daysAgo(n), value: 1 }));
+    setup();
+    await flushPromises();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.streak()).toBe(9);
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('9 Tage am Stück');
+  });
+
+  it('shows no streak badge for a habit that was done a few days ago but then missed', async () => {
+    entries = [3, 4, 5].map((n) => ({ id: `e${n}`, habitId: habit.id, date: daysAgo(n), value: 1 }));
+    setup();
+    await flushPromises();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.streak()).toBe(0);
+    expect(fixture.nativeElement.querySelector('.streak-badge')).toBeNull();
   });
 });

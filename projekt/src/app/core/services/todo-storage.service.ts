@@ -57,10 +57,29 @@ export class TodoStorageService {
       id: crypto.randomUUID(),
       done: false,
       createdAt: new Date().toISOString(),
+      order: Date.now(),
     };
     const todos = await this.getTodos();
     await this.storage.set(TODOS_KEY, [...todos, todo]);
     return todo;
+  }
+
+  /**
+   * Applies a new drag-and-drop order within one section of the "Todos"
+   * list: `orderedIds` is that section's todos in their new order, and each
+   * one's `order` is rewritten to match its position. Todos outside that
+   * section (a different id) are left untouched, since sections are always
+   * sorted independently of each other.
+   */
+  async reorderTodos(orderedIds: readonly string[]): Promise<void> {
+    await this.ensureReady();
+    const positionById = new Map(orderedIds.map((id, index) => [id, index] as const));
+    const todos = await this.getTodos();
+    const next = todos.map((todo) => {
+      const order = positionById.get(todo.id);
+      return order == null ? todo : { ...todo, order };
+    });
+    await this.storage.set(TODOS_KEY, next);
   }
 
   /** Marks a todo done or open again. */

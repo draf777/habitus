@@ -14,4 +14,6 @@ export interface Todo {
   readonly date: string;
   /** ISO timestamp of when the todo was created. */
   readonly createdAt: string;
+  /** Sort key within its section on "Todos"; lower comes first. Rewritten by drag-and-drop reordering. */
+  readonly order: number;
 }
