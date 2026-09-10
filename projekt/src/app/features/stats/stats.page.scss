@@ -1,16 +1,17 @@
-.week-summary {
+.chart-wrap {
+  position: relative;
+  height: 260px;
+  padding: 1rem 1rem 0;
+}
+
+.summary {
   text-align: center;
-  padding: 1.5rem 1rem 0.5rem;
+  color: var(--ion-color-medium);
+  margin: 0.5rem 0 1rem;
 }
 
-.week-summary__value {
-  margin: 0;
-  font-size: 3rem;
-  font-weight: 700;
-  color: var(--ion-color-primary);
-}
-
-.week-summary__label {
-  margin: 0.25rem 0 0;
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
   color: var(--ion-color-medium);
 }

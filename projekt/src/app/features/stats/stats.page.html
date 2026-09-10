@@ -11,20 +11,38 @@
     </ion-toolbar>
   </ion-header>
 
-  <app-demo-notice
-    text="Die Zahlen sind aus Beispieldaten berechnet, nicht aus deinen eigenen Habits. Eine echte Auswertung folgt in einer späteren Version."
-  ></app-demo-notice>
+  @if (habits().length === 0) {
+    <div class="empty-state">
+      <p>Noch keine Habits angelegt.</p>
+    </div>
+  } @else {
+    <ion-list [inset]="true">
+      <ion-item>
+        <ion-select
+          label="Habit"
+          label-placement="stacked"
+          interface="popover"
+          [value]="selectedHabitId()"
+          (ionChange)="onHabitChange($any($event.detail.value))"
+        >
+          @for (habit of habits(); track habit.id) {
+            <ion-select-option [value]="habit.id">{{ habit.name }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+    </ion-list>
 
-  <div class="week-summary">
-    <p class="week-summary__value">{{ weeklyCompletionPercent() }}%</p>
-    <p class="week-summary__label">deiner Wochenziele erreicht</p>
-  </div>
-
-  <ion-list [inset]="true">
-    <ion-list-header>Diese Woche</ion-list-header>
-
-    @for (stat of stats(); track stat.habit.id) {
-      <app-habit-progress [stat]="stat"></app-habit-progress>
+    @if (hasEntries()) {
+      <div class="chart-wrap">
+        <canvas baseChart type="bar" [data]="chartData()" [options]="chartOptions()"></canvas>
+      </div>
+      @if (isSelectedHabitBoolean()) {
+        <p class="summary">Erledigt an {{ doneDays() }} von 7 Tagen</p>
+      }
+    } @else {
+      <div class="empty-state">
+        <p>Noch keine Daten für diese Woche.</p>
+      </div>
     }
-  </ion-list>
+  }
 </ion-content>

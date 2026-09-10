@@ -11,6 +11,17 @@ export function today(): string {
   return formatDate(new Date());
 }
 
+/** The `count` most recent "YYYY-MM-DD" dates up to and including `date`, oldest first. */
+export function lastDays(date: Date, count: number): string[] {
+  const dates: string[] = [];
+  for (let offset = count - 1; offset >= 0; offset--) {
+    const cursor = new Date(date);
+    cursor.setDate(date.getDate() - offset);
+    dates.push(formatDate(cursor));
+  }
+  return dates;
+}
+
 /** "YYYY-MM-DD" dates from this week's Monday through `date`, inclusive. */
 export function datesThisWeekUpTo(date: Date): string[] {
   const weekday = date.getDay(); // 0 = Sonntag .. 6 = Samstag

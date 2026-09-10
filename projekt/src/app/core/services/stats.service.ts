@@ -1,0 +1,48 @@
+import { Injectable, inject } from '@angular/core';
+
+import { lastDays } from '../date.util';
+import { Habit } from '../../models/habit.model';
+import { isHabitDone } from '../../shared/habit-progress.util';
+import { HabitStorageService } from './habit-storage.service';
+
+/** One day's value within a habit's week, as shown on the "Statistik" chart. */
+export interface HabitDayValue {
+  /** The day, as "YYYY-MM-DD". */
+  readonly date: string;
+  /** Recorded value for that day; 0 if nothing was entered. `boolean` habits are 0 or 1. */
+  readonly value: number;
+}
+
+/** A habit's last 7 days, for the "Statistik" chart. */
+export interface HabitWeekStats {
+  readonly habit: Habit;
+  /** One entry per day, oldest first. */
+  readonly days: readonly HabitDayValue[];
+  /** Whether at least one of those 7 days has a recorded entry. */
+  readonly hasEntries: boolean;
+}
+
+/**
+ * Aggregates a habit's entries into its last 7 days, for the "Statistik"
+ * chart. `boolean` habits are reduced to 0/1 per day (done or not); every
+ * other type keeps its recorded value (minutes, hours or count).
+ */
+@Injectable({ providedIn: 'root' })
+export class StatsService {
+  private readonly storage = inject(HabitStorageService);
+
+  /** The given habit's last 7 days, ending on `referenceDate` (defaults to today). */
+  async getWeekStats(habit: Habit, referenceDate: Date = new Date()): Promise<HabitWeekStats> {
+    const dates = lastDays(referenceDate, 7);
+    const entries = await this.storage.getEntriesForHabit(habit.id);
+    const entryByDate = new Map(entries.map((entry) => [entry.date, entry.value] as const));
+
+    const days = dates.map((date) => {
+      const raw = entryByDate.get(date);
+      const value = raw == null ? 0 : habit.type === 'boolean' ? (isHabitDone(habit, raw) ? 1 : 0) : raw;
+      return { date, value };
+    });
+
+    return { habit, days, hasEntries: dates.some((date) => entryByDate.has(date)) };
+  }
+}

@@ -32,3 +32,11 @@
 - Entscheidung Theme-Technik: CSS Custom Properties + signal-basierter SettingsService statt separater Angular-Module pro Theme, weil Umschalten so ohne Reload funktioniert.
 - Layout auf Tablet-Breite/Landscape gegengeprüft, Grid-Breakpoints angepasst.
 - v0.3.0 getaggt, live deployed.
+
+## 10.9., 12:00
+
+- Statistik-Tab mit Wochendiagramm (ng2-charts/Chart.js) pro Habit umgesetzt, StatsService kapselt die Aggregation.
+- Entscheidung Chart-Library: ng2-charts/Chart.js statt ngx-charts oder ApexCharts, weil aktiv gepflegt, standalone-fähig und Farben sich sauber an die eigenen Theme-Variablen binden lassen (wichtig für 2 Farbschemen × Hell/Dunkel).
+- Ja/Nein-Habits werden in der Statistik als "erledigt an X von 7 Tagen" gezählt.
+- Unit-Tests für StatsService (inkl. Randfälle ohne Einträge) ergänzt.
+- v0.4.0 getaggt, live deployed.

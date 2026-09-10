@@ -2,9 +2,18 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Neueste Version zuoberst.
 
-## [0.3.1] - 2026-09-04
+## [0.4.0] - 2026-09-10
 
 Aktuelle Version.
+
+### Added
+
+- Statistik-Tab: Wochendiagramm pro Habit (ng2-charts)
+- StatsService für Aggregationslogik inkl. Ja/Nein-Habits
+- Charts folgen aktivem Farbschema/Theme
+- Unit-Tests für StatsService
+
+## [0.3.1] - 2026-09-04
 
 ### Added
 
