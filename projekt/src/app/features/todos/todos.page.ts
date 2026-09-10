@@ -29,18 +29,14 @@ function byOrder(a: Todo, b: Todo): number {
   return a.order - b.order;
 }
 
-/** "DD.MM." for a "YYYY-MM-DD" date, e.g. "08.09.". */
-function formatShortDate(date: string): string {
-  return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' }).format(new Date(`${date}T00:00:00`));
-}
-
 /**
  * "Todos" — one-off tasks, next to the recurring habits. Backed by
  * `TodoStorageService`. Split into three sections: today's open tasks,
  * still-open tasks from earlier days (which used to simply vanish once the
- * day had passed), and done tasks (from any day). Each section can be
- * reordered by hand via drag-and-drop, always available via the handle on
- * each row — no separate mode needed.
+ * day had passed, and can be rescheduled to today from there), and done
+ * tasks (from any day). Each section can be reordered by hand via
+ * drag-and-drop, always available via the handle on each row — no separate
+ * mode needed.
  *
  * Todos can also be deleted from another tab (clearing demo data on
  * "Über"), and Ionic keeps this page's component instance alive across tab
@@ -124,9 +120,10 @@ export class TodosPage implements ViewWillEnter {
     await this.reload();
   }
 
-  /** The original date to show under a task, or `undefined` for today's own tasks. */
-  dateLabelFor(todo: Todo): string | undefined {
-    return todo.date === this.date ? undefined : formatShortDate(todo.date);
+  /** Reschedules a still-open earlier task to today, moving it into the "Heute" section. */
+  async onMoveToToday(todo: Todo): Promise<void> {
+    await this.storage.setDate(todo.id, this.date);
+    await this.reload();
   }
 
   /** Applies a drag-and-drop reorder within one section (`sectionTodos`, already in on-screen order). */

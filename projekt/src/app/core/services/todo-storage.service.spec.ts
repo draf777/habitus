@@ -65,6 +65,19 @@ describe('TodoStorageService', () => {
     await expect(service.setDone('missing', true)).rejects.toThrow();
   });
 
+  it('moves a todo to a different date', async () => {
+    const todo = await service.addTodo({ text: 'Steuererklärung', date: '2026-09-01' });
+
+    const moved = await service.setDate(todo.id, '2026-09-10');
+
+    expect(moved.date).toBe('2026-09-10');
+    expect(await service.getTodos()).toEqual([moved]);
+  });
+
+  it('rejects moving a todo to a different date that does not exist', async () => {
+    await expect(service.setDate('missing', '2026-09-10')).rejects.toThrow();
+  });
+
   it('deletes a todo', async () => {
     const todo = await service.addTodo({ text: 'Einkaufen', date: '2026-09-04' });
 

@@ -26,13 +26,14 @@ describe('TodoItemComponent', () => {
     order: 1,
   };
 
-  function setup(value: Todo, mobile = true): void {
+  function setup(value: Todo, mobile = true, showMoveToToday = false): void {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [{ provide: Platform, useValue: new FakePlatform(mobile) }],
     });
     fixture = TestBed.createComponent(TodoItemComponent);
     fixture.componentRef.setInput('todo', value);
+    fixture.componentRef.setInput('showMoveToToday', showMoveToToday);
     fixture.detectChanges();
   }
 
@@ -123,6 +124,26 @@ describe('TodoItemComponent', () => {
       expect(removed).toHaveBeenCalled();
       expect(closed).toHaveBeenCalled();
     });
+
+    it('shows no "move to today" swipe action by default', () => {
+      setup(todo, true);
+
+      expect(fixture.nativeElement.querySelector('ion-item-option[aria-label*="verschieben"]')).toBeNull();
+    });
+
+    it('shows and wires up a "move to today" swipe action when offered', () => {
+      setup(todo, true, true);
+
+      const moved = vi.fn();
+      fixture.componentInstance.moveToToday.subscribe(moved);
+      const closed = vi.fn().mockResolvedValue(undefined);
+
+      expect(fixture.nativeElement.querySelector('ion-item-option[aria-label*="verschieben"]')).toBeTruthy();
+      fixture.componentInstance.onSwipeMoveToToday({ close: closed } as never);
+
+      expect(moved).toHaveBeenCalled();
+      expect(closed).toHaveBeenCalled();
+    });
   });
 
   describe('on a desktop viewport', () => {
@@ -142,6 +163,25 @@ describe('TodoItemComponent', () => {
 
       fixture.nativeElement.querySelector('ion-button[aria-label*="löschen"]').click();
       expect(removed).toHaveBeenCalled();
+    });
+
+    it('shows no "move to today" button by default', () => {
+      setup(todo, false);
+
+      expect(fixture.nativeElement.querySelector('ion-button[aria-label*="verschieben"]')).toBeNull();
+    });
+
+    it('shows and wires up a "move to today" button when offered', () => {
+      setup(todo, false, true);
+
+      const moved = vi.fn();
+      fixture.componentInstance.moveToToday.subscribe(moved);
+
+      const button = fixture.nativeElement.querySelector('ion-button[aria-label*="verschieben"]');
+      expect(button).toBeTruthy();
+      button.click();
+
+      expect(moved).toHaveBeenCalled();
     });
   });
 });

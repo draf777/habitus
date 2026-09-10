@@ -59,9 +59,10 @@
         @for (todo of earlierOpenTodos(); track todo.id) {
           <app-todo-item
             [todo]="todo"
-            [dateLabel]="dateLabelFor(todo)"
+            [showMoveToToday]="true"
             (toggled)="onToggle(todo)"
             (remove)="onRemove(todo)"
+            (moveToToday)="onMoveToToday(todo)"
           ></app-todo-item>
         }
       </ion-reorder-group>
@@ -77,12 +78,7 @@
 
       <ion-reorder-group [disabled]="false" (ionReorderEnd)="onReorder($event, doneTodos())">
         @for (todo of doneTodos(); track todo.id) {
-          <app-todo-item
-            [todo]="todo"
-            [dateLabel]="dateLabelFor(todo)"
-            (toggled)="onToggle(todo)"
-            (remove)="onRemove(todo)"
-          ></app-todo-item>
+          <app-todo-item [todo]="todo" (toggled)="onToggle(todo)" (remove)="onRemove(todo)"></app-todo-item>
         }
       </ion-reorder-group>
     </ion-list>

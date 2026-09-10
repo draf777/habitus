@@ -84,18 +84,12 @@ export class TodoStorageService {
 
   /** Marks a todo done or open again. */
   async setDone(id: string, done: boolean): Promise<Todo> {
-    await this.ensureReady();
-    const todos = await this.getTodos();
-    const index = todos.findIndex((todo) => todo.id === id);
-    if (index === -1) {
-      throw new Error(`Todo ${id} does not exist`);
-    }
+    return this.updateTodo(id, { done });
+  }
 
-    const updated: Todo = { ...todos[index], done };
-    const next = [...todos];
-    next[index] = updated;
-    await this.storage.set(TODOS_KEY, next);
-    return updated;
+  /** Moves a todo to a different day, e.g. rescheduling a still-open earlier task to today. */
+  async setDate(id: string, date: string): Promise<Todo> {
+    return this.updateTodo(id, { date });
   }
 
   /** Removes a todo. */
@@ -106,5 +100,20 @@ export class TodoStorageService {
       TODOS_KEY,
       todos.filter((todo) => todo.id !== id),
     );
+  }
+
+  private async updateTodo(id: string, changes: Partial<Pick<Todo, 'done' | 'date'>>): Promise<Todo> {
+    await this.ensureReady();
+    const todos = await this.getTodos();
+    const index = todos.findIndex((todo) => todo.id === id);
+    if (index === -1) {
+      throw new Error(`Todo ${id} does not exist`);
+    }
+
+    const updated: Todo = { ...todos[index], ...changes };
+    const next = [...todos];
+    next[index] = updated;
+    await this.storage.set(TODOS_KEY, next);
+    return updated;
   }
 }

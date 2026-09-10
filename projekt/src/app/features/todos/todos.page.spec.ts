@@ -19,6 +19,7 @@ describe('TodosPage', () => {
     getTodos: ReturnType<typeof vi.fn>;
     addTodo: ReturnType<typeof vi.fn>;
     setDone: ReturnType<typeof vi.fn>;
+    setDate: ReturnType<typeof vi.fn>;
     deleteTodo: ReturnType<typeof vi.fn>;
     reorderTodos: ReturnType<typeof vi.fn>;
   };
@@ -49,6 +50,7 @@ describe('TodosPage', () => {
       getTodos: vi.fn().mockResolvedValue(allTodos),
       addTodo: vi.fn(),
       setDone: vi.fn(),
+      setDate: vi.fn(),
       deleteTodo: vi.fn().mockResolvedValue(undefined),
       reorderTodos: vi.fn().mockResolvedValue(undefined),
     };
@@ -162,12 +164,24 @@ describe('TodosPage', () => {
     expect(fixture.componentInstance.todos()).toEqual(allTodos.filter((todo) => todo.id !== 'a'));
   });
 
-  it("shows no date label for today's own todos", () => {
-    expect(fixture.componentInstance.dateLabelFor(todayOpenA)).toBeUndefined();
+  it('reschedules an earlier todo to today and reloads', async () => {
+    await flushPromises();
+    storage.setDate.mockResolvedValue({ ...earlierOpen, date: TODAY });
+    storage.getTodos.mockResolvedValue(allTodos.map((todo) => (todo.id === 'c' ? { ...todo, date: TODAY } : todo)));
+
+    await fixture.componentInstance.onMoveToToday(earlierOpen);
+
+    expect(storage.setDate).toHaveBeenCalledWith('c', TODAY);
+    expect(fixture.componentInstance.todayOpenTodos().some((todo) => todo.id === 'c')).toBe(true);
+    expect(fixture.componentInstance.earlierOpenTodos().some((todo) => todo.id === 'c')).toBe(false);
   });
 
-  it('shows a formatted date label for a todo from an earlier day', () => {
-    expect(fixture.componentInstance.dateLabelFor(earlierOpen)).toBe('01.01.');
+  it('offers "move to today" only for todos in the earlier-open section', async () => {
+    await flushPromises();
+    fixture.detectChanges();
+
+    const moveIcons = fixture.nativeElement.querySelectorAll('ion-icon[name="today-outline"]');
+    expect(moveIcons.length).toBe(1);
   });
 
   it('persists a drag-and-drop reorder and reloads', async () => {

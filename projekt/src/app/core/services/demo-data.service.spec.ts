@@ -46,13 +46,23 @@ describe('DemoDataService', () => {
     statsService = TestBed.inject(StatsService);
   });
 
-  it('seeds two habits and two todos on first run', async () => {
+  it('seeds two habits and four todos on first run', async () => {
     await service.seedIfNeeded();
 
     const habits = await habitStorage.getHabits();
     const todos = await todoStorage.getTodos();
     expect(habits.length).toBe(2);
-    expect(todos.length).toBe(2);
+    expect(todos.length).toBe(4);
+  });
+
+  it('gives todos from all three "Todos" sections: today, still-open from earlier, and done', async () => {
+    await service.seedIfNeeded();
+
+    const todos = await todoStorage.getTodos();
+    const todayStr = today();
+    expect(todos.some((todo) => todo.date === todayStr && !todo.done)).toBe(true);
+    expect(todos.some((todo) => todo.date < todayStr && !todo.done)).toBe(true);
+    expect(todos.some((todo) => todo.date < todayStr && todo.done)).toBe(true);
   });
 
   it('marks both seeded habits done today, with a current streak already running', async () => {
@@ -87,7 +97,7 @@ describe('DemoDataService', () => {
     await service.seedIfNeeded();
 
     expect((await habitStorage.getHabits()).length).toBe(2);
-    expect((await todoStorage.getTodos()).length).toBe(2);
+    expect((await todoStorage.getTodos()).length).toBe(4);
   });
 
   it('does not reseed even if the user deletes everything by hand', async () => {

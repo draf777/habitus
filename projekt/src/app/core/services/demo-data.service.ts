@@ -18,8 +18,10 @@ const EMPTY_IDS: DemoDataIds = { habitIds: [], todoIds: [] };
 
 /**
  * Seeds a first-time install with two example habits (a week of history
- * already filled in, so "Statistik" isn't empty) and two example todos, so
- * the app doesn't start out completely blank.
+ * already filled in, so "Statistik" isn't empty) and four example todos —
+ * two for today, plus one still-open and one done task left over from
+ * earlier in the week, so "Todos" shows all three of its sections (Heute,
+ * frühere offene Todos, Erledigt) right away instead of starting blank.
  *
  * Seeding runs at most once, ever — tracked via a persisted flag rather than
  * by checking whether habits/todos exist, so deleting everything by hand
@@ -87,9 +89,15 @@ export class DemoDataService {
     const shopping = await this.todoStorage.addTodo({ text: 'Einkaufsliste schreiben', date });
     const mails = await this.todoStorage.addTodo({ text: 'Mails beantworten', date });
 
+    // Left over from earlier in the week: one still open, one already done —
+    // so "Frühere, noch offene Todos" and "Erledigt" aren't empty either.
+    const taxes = await this.todoStorage.addTodo({ text: 'Steuererklärung einreichen', date: dates[1] });
+    const bill = await this.todoStorage.addTodo({ text: 'Stromrechnung bezahlt', date: dates[3] });
+    await this.todoStorage.setDone(bill.id, true);
+
     await this.storage.set(TRACKED_IDS_KEY, {
       habitIds: [meditation.id, reading.id],
-      todoIds: [shopping.id, mails.id],
+      todoIds: [shopping.id, mails.id, taxes.id, bill.id],
     } satisfies DemoDataIds);
   }
 

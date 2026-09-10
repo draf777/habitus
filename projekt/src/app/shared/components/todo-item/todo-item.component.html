@@ -6,16 +6,17 @@
     [attr.aria-label]="todo().text + ' erledigt'"
   ></ion-checkbox>
   <ion-label class="ion-text-wrap todo-text" [class.todo-done]="todo().done" (click)="onLabelClick($event)">
-    @if (dateLabel(); as label) {
-      <p>{{ label }}</p>
-    }
+    <!-- `[innerHTML]` goes on this plain span, not ion-label itself: ion-label is a
+         shadow-DOM/slot component, and setting its innerHTML directly can leave Stencil's
+         slot relocation stuck on an invisible placeholder comment instead of real text. -->
     <span [innerHTML]="linkedText()"></span>
   </ion-label>
 </ng-template>
 
 @if (isMobile()) {
-  <!-- Touch viewport: delete is a swipe action, keeping the row itself compact; the reorder handle is
-       always visible regardless, since dragging it starts a reorder without competing with the swipe. -->
+  <!-- Touch viewport: delete (and, where offered, "move to today") are swipe actions, keeping the row itself
+       compact; the reorder handle is always visible regardless, since dragging it starts a reorder without
+       competing with the swipe. -->
   <ion-item-sliding #slidingItem>
     <ion-item lines="full">
       <ng-container [ngTemplateOutlet]="rowContent"></ng-container>
@@ -23,6 +24,15 @@
     </ion-item>
 
     <ion-item-options side="end">
+      @if (showMoveToToday()) {
+        <ion-item-option
+          color="primary"
+          (click)="onSwipeMoveToToday(slidingItem)"
+          [attr.aria-label]="'Aufgabe ' + todo().text + ' zu heute verschieben'"
+        >
+          <ion-icon slot="icon-only" name="today-outline"></ion-icon>
+        </ion-item-option>
+      }
       <ion-item-option
         color="danger"
         (click)="onSwipeRemove(slidingItem)"
@@ -33,10 +43,22 @@
     </ion-item-options>
   </ion-item-sliding>
 } @else {
-  <!-- Desktop (mouse): swiping isn't discoverable, so delete stays a plain visible button next to the reorder handle. -->
+  <!-- Desktop (mouse): swiping isn't discoverable, so delete (and "move to today") stay plain visible buttons
+       next to the reorder handle. -->
   <ion-item lines="full">
     <ng-container [ngTemplateOutlet]="rowContent"></ng-container>
 
+    @if (showMoveToToday()) {
+      <ion-button
+        slot="end"
+        fill="clear"
+        color="primary"
+        (click)="moveToToday.emit()"
+        [attr.aria-label]="'Aufgabe ' + todo().text + ' zu heute verschieben'"
+      >
+        <ion-icon slot="icon-only" name="today-outline"></ion-icon>
+      </ion-button>
+    }
     <ion-button
       slot="end"
       fill="clear"

@@ -12,16 +12,18 @@ Aktuelle Version.
 - StatsService für Aggregationslogik inkl. Ja/Nein-Habits
 - Charts folgen aktivem Farbschema/Theme
 - Unit-Tests für StatsService
-- App startet erstmalig mit zwei Beispiel-Habits (inkl. realistisch gefüllter letzter Woche samt laufendem Streak) und zwei Beispiel-Todos
+- App startet erstmalig mit zwei Beispiel-Habits (inkl. realistisch gefüllter letzter Woche samt laufendem Streak) und vier Beispiel-Todos (Heute, frühere offene und ein bereits erledigtes)
 - "Über" > "Daten": Demo-Daten lassen sich mit einem Klick vollständig löschen, ohne eigene Daten zu beeinflussen
 - Statistik zeigt den aktuellen Streak (Tage am Stück) pro Habit
 - Todos: Links im Text werden automatisch erkannt und sind klickbar
 - Todos: per Drag & Drop frei sortierbar, Ziehpunkt direkt in der normalen Ansicht sichtbar (kein eigener Modus nötig)
 - Todos-Tab in drei Abschnitte gegliedert: Heute, frühere noch offene Todos, Erledigt — frühere offene Todos verschwinden nicht mehr einfach
+- Frühere, noch offene Todos lassen sich auf "Heute" verschieben
 
 ### Changed
 
 - Todo-Text bricht jetzt um statt bei langen Texten abgeschnitten zu werden
+- Datum wird bei Todos nicht mehr separat angezeigt
 
 ### Fixed
 

@@ -14,7 +14,7 @@ import {
   Platform,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { trashOutline } from 'ionicons/icons';
+import { todayOutline, trashOutline } from 'ionicons/icons';
 import { map } from 'rxjs';
 
 import { Todo } from '../../../models/todo.model';
@@ -22,7 +22,8 @@ import { linkify } from '../../linkify.util';
 
 /**
  * One task as a row in the todo list: a checkbox to toggle it done, a
- * delete action, and a drag handle to reorder it.
+ * delete action, a drag handle to reorder it, and — for still-open tasks
+ * left over from an earlier day — a "move to today" action.
  *
  * Deleting is used far less often than checking a task off, so — mirroring
  * `HabitItemComponent` — it stays out of the row's fixed layout: a swipe
@@ -54,13 +55,15 @@ export class TodoItemComponent {
 
   /** The task to display. */
   readonly todo = input.required<Todo>();
-  /** Shown as a subtitle under the text, e.g. the task's original date in the "earlier" section. */
-  readonly dateLabel = input<string | undefined>(undefined);
+  /** Whether to offer a "move to today" action, e.g. for still-open tasks left over from an earlier day. */
+  readonly showMoveToToday = input(false);
 
   /** Emitted when the user checks or unchecks this task. */
   @Output() readonly toggled = new EventEmitter<void>();
   /** Emitted when the user requests this task be deleted. */
   @Output() readonly remove = new EventEmitter<void>();
+  /** Emitted when the user requests this task be rescheduled to today. */
+  @Output() readonly moveToToday = new EventEmitter<void>();
 
   /** Whether to show a swipe-revealed delete action (mobile-width viewport) instead of a button. */
   readonly isMobile = toSignal(this.platform.resize.pipe(map(() => this.platform.is('mobile'))), {
@@ -71,13 +74,19 @@ export class TodoItemComponent {
   readonly linkedText = computed(() => linkify(this.todo().text));
 
   constructor() {
-    addIcons({ trashOutline });
+    addIcons({ trashOutline, todayOutline });
   }
 
   /** From the swipe-revealed "Löschen" action. */
   onSwipeRemove(sliding: IonItemSliding): void {
     void sliding.close();
     this.remove.emit();
+  }
+
+  /** From the swipe-revealed "Zu heute verschieben" action. */
+  onSwipeMoveToToday(sliding: IonItemSliding): void {
+    void sliding.close();
+    this.moveToToday.emit();
   }
 
   /** Toggles the task when its text is clicked, unless the click was on one of the linked URLs. */
