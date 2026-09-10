@@ -33,54 +33,62 @@
     </ion-item>
   </ion-list>
 
-  <ion-list [inset]="true">
-    <ion-list-header>
-      <ion-label>Heute</ion-label>
-      <ion-note slot="end">{{ todayOpenTodos().length }}</ion-note>
-    </ion-list-header>
-
-    <ion-reorder-group [disabled]="false" (ionReorderEnd)="onReorder($event, todayOpenTodos())">
-      @for (todo of todayOpenTodos(); track todo.id) {
-        <app-todo-item [todo]="todo" (toggled)="onToggle(todo)" (remove)="onRemove(todo)"></app-todo-item>
-      } @empty {
-        <ion-note class="empty-hint">Nichts mehr offen.</ion-note>
-      }
-    </ion-reorder-group>
-  </ion-list>
-
-  @if (earlierOpenTodos().length > 0) {
+  @if (loading()) {
+    <div class="loading-state">
+      <ion-spinner></ion-spinner>
+    </div>
+  } @else {
     <ion-list [inset]="true">
       <ion-list-header>
-        <ion-label>Frühere, noch offene Todos</ion-label>
-        <ion-note slot="end">{{ earlierOpenTodos().length }}</ion-note>
+        <ion-label>Heute</ion-label>
+        <ion-note slot="end">{{ todayOpenTodos().length }}</ion-note>
       </ion-list-header>
 
-      <ion-reorder-group [disabled]="false" (ionReorderEnd)="onReorder($event, earlierOpenTodos())">
-        @for (todo of earlierOpenTodos(); track todo.id) {
-          <app-todo-item
-            [todo]="todo"
-            [showMoveToToday]="true"
-            (toggled)="onToggle(todo)"
-            (remove)="onRemove(todo)"
-            (moveToToday)="onMoveToToday(todo)"
-          ></app-todo-item>
-        }
-      </ion-reorder-group>
-    </ion-list>
-  }
-
-  @if (doneTodos().length > 0) {
-    <ion-list [inset]="true">
-      <ion-list-header>
-        <ion-label>Erledigt</ion-label>
-        <ion-note slot="end">{{ doneTodos().length }}</ion-note>
-      </ion-list-header>
-
-      <ion-reorder-group [disabled]="false" (ionReorderEnd)="onReorder($event, doneTodos())">
-        @for (todo of doneTodos(); track todo.id) {
+      <ion-reorder-group [disabled]="false" (ionReorderEnd)="onReorder($event, todayOpenTodos())">
+        @for (todo of todayOpenTodos(); track todo.id) {
           <app-todo-item [todo]="todo" (toggled)="onToggle(todo)" (remove)="onRemove(todo)"></app-todo-item>
+        } @empty {
+          <ion-item lines="none">
+            <ion-label color="medium">Nichts mehr offen.</ion-label>
+          </ion-item>
         }
       </ion-reorder-group>
     </ion-list>
+
+    @if (earlierOpenTodos().length > 0) {
+      <ion-list [inset]="true">
+        <ion-list-header>
+          <ion-label>Frühere, noch offene Todos</ion-label>
+          <ion-note slot="end">{{ earlierOpenTodos().length }}</ion-note>
+        </ion-list-header>
+
+        <ion-reorder-group [disabled]="false" (ionReorderEnd)="onReorder($event, earlierOpenTodos())">
+          @for (todo of earlierOpenTodos(); track todo.id) {
+            <app-todo-item
+              [todo]="todo"
+              [showMoveToToday]="true"
+              (toggled)="onToggle(todo)"
+              (remove)="onRemove(todo)"
+              (moveToToday)="onMoveToToday(todo)"
+            ></app-todo-item>
+          }
+        </ion-reorder-group>
+      </ion-list>
+    }
+
+    @if (doneTodos().length > 0) {
+      <ion-list [inset]="true">
+        <ion-list-header>
+          <ion-label>Erledigt</ion-label>
+          <ion-note slot="end">{{ doneTodos().length }}</ion-note>
+        </ion-list-header>
+
+        <ion-reorder-group [disabled]="false" (ionReorderEnd)="onReorder($event, doneTodos())">
+          @for (todo of doneTodos(); track todo.id) {
+            <app-todo-item [todo]="todo" (toggled)="onToggle(todo)" (remove)="onRemove(todo)"></app-todo-item>
+          }
+        </ion-reorder-group>
+      </ion-list>
+    }
   }
 </ion-content>

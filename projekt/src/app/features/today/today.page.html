@@ -16,42 +16,18 @@
     </ion-toolbar>
   </ion-header>
 
-  <ion-list [inset]="true">
-    <ion-list-header>
-      <ion-label>Noch offen</ion-label>
-      <ion-note slot="end">{{ openHabits().length }}</ion-note>
-    </ion-list-header>
-
-    @for (habit of openHabits(); track habit.id) {
-      <app-habit-item
-        [habit]="habit"
-        [value]="valueFor(habit.id)"
-        [weeklyProgress]="weeklyProgressFor(habit)"
-        (valueChange)="onValueChange(habit, $event)"
-        (edit)="formMode.set(habit)"
-        (remove)="confirmDelete(habit)"
-      ></app-habit-item>
-    } @empty {
-      @if (habits().length > 0) {
-        <ion-item lines="none">
-          <ion-label>Alles für heute erledigt! 🎉</ion-label>
-        </ion-item>
-      } @else {
-        <ion-item lines="none">
-          <ion-label class="ion-text-wrap">Noch keine Habits. Leg dein erstes über das Plus oben an.</ion-label>
-        </ion-item>
-      }
-    }
-  </ion-list>
-
-  @if (doneHabits().length > 0) {
+  @if (loading()) {
+    <div class="loading-state">
+      <ion-spinner></ion-spinner>
+    </div>
+  } @else {
     <ion-list [inset]="true">
       <ion-list-header>
-        <ion-label>Erledigt</ion-label>
-        <ion-note slot="end">{{ doneHabits().length }}</ion-note>
+        <ion-label>Noch offen</ion-label>
+        <ion-note slot="end">{{ openHabits().length }}</ion-note>
       </ion-list-header>
 
-      @for (habit of doneHabits(); track habit.id) {
+      @for (habit of openHabits(); track habit.id) {
         <app-habit-item
           [habit]="habit"
           [value]="valueFor(habit.id)"
@@ -60,8 +36,38 @@
           (edit)="formMode.set(habit)"
           (remove)="confirmDelete(habit)"
         ></app-habit-item>
+      } @empty {
+        @if (habits().length > 0) {
+          <ion-item lines="none">
+            <ion-label>Alles für heute erledigt! 🎉</ion-label>
+          </ion-item>
+        } @else {
+          <ion-item lines="none">
+            <ion-label class="ion-text-wrap">Noch keine Habits. Leg dein erstes über das Plus oben an.</ion-label>
+          </ion-item>
+        }
       }
     </ion-list>
+
+    @if (doneHabits().length > 0) {
+      <ion-list [inset]="true">
+        <ion-list-header>
+          <ion-label>Erledigt</ion-label>
+          <ion-note slot="end">{{ doneHabits().length }}</ion-note>
+        </ion-list-header>
+
+        @for (habit of doneHabits(); track habit.id) {
+          <app-habit-item
+            [habit]="habit"
+            [value]="valueFor(habit.id)"
+            [weeklyProgress]="weeklyProgressFor(habit)"
+            (valueChange)="onValueChange(habit, $event)"
+            (edit)="formMode.set(habit)"
+            (remove)="confirmDelete(habit)"
+          ></app-habit-item>
+        }
+      </ion-list>
+    }
   }
 </ion-content>
 

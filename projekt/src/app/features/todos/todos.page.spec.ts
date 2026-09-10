@@ -205,4 +205,47 @@ describe('TodosPage', () => {
 
     expect(fixture.componentInstance.todos()).toEqual([todayOpenA]);
   });
+
+  describe('loading state', () => {
+    /** Lets a test hold `storage.getTodos()` unresolved to inspect the in-between loading state. */
+    function makeDeferredTodos(): { resolve: (todos: Todo[]) => void } {
+      let resolve!: (todos: Todo[]) => void;
+      storage.getTodos.mockReturnValue(new Promise<Todo[]>((res) => (resolve = res)));
+      return { resolve };
+    }
+
+    it('shows a spinner (not "nothing open") while storage is still loading for the first time', () => {
+      const deferred = makeDeferredTodos();
+      fixture = TestBed.createComponent(TodosPage);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.loading()).toBe(true);
+      expect(fixture.nativeElement.querySelector('ion-spinner')).not.toBeNull();
+      expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('Nichts mehr offen.');
+
+      deferred.resolve([]);
+    });
+
+    it('stops loading and hides the spinner once the todos have been fetched', async () => {
+      const deferred = makeDeferredTodos();
+      fixture = TestBed.createComponent(TodosPage);
+      fixture.detectChanges();
+
+      deferred.resolve([]);
+      await flushPromises();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.loading()).toBe(false);
+      expect(fixture.nativeElement.querySelector('ion-spinner')).toBeNull();
+    });
+
+    it('does not flash the spinner again on a later reload (e.g. a tab revisit)', async () => {
+      await flushPromises();
+      fixture.detectChanges();
+
+      fixture.componentInstance.ionViewWillEnter();
+
+      expect(fixture.componentInstance.loading()).toBe(false);
+    });
+  });
 });

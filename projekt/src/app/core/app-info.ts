@@ -1,7 +1,7 @@
 /** Static facts about the app, shown on the "Über" page. */
 export const APP_INFO = {
   name: 'Habitus',
-  version: '0.4.0',
+  version: '0.5.0',
   description:
     'Habitus hilft dir, Gewohnheiten aufzubauen und wirklich durchzuziehen. Du legst fest, was du ' +
     'regelmässig tun willst — meditieren, trainieren, lesen, was auch immer — und hakst es jeden Tag ab. ' +
@@ -11,6 +11,4 @@ export const APP_INFO = {
     'Die App läuft komplett offline und lokal auf deinem Gerät: kein Account, kein Backend, keine Cloud. ' +
     'Du kannst sie als Progressive Web App auf dem Homescreen installieren und wie eine normale App nutzen.',
   author: 'David Roth',
-  repositoryUrl: 'https://gitlab.santis-basis.ch/il24/335-david',
-  readmeUrl: 'https://gitlab.santis-basis.ch/il24/335-david/-/blob/main/README.md',
 } as const;

@@ -11,7 +11,11 @@
     </ion-toolbar>
   </ion-header>
 
-  @if (habits().length === 0) {
+  @if (loading()) {
+    <div class="loading-state">
+      <ion-spinner></ion-spinner>
+    </div>
+  } @else if (habits().length === 0) {
     <div class="empty-state">
       <p>Noch keine Habits angelegt.</p>
     </div>
@@ -32,6 +36,20 @@
       </ion-item>
     </ion-list>
 
+    <ion-segment
+      class="period-segment"
+      [value]="period()"
+      (ionChange)="onPeriodChange($any($event.detail.value))"
+      aria-label="Zeitraum"
+    >
+      <ion-segment-button value="week">
+        <ion-label>Woche</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="month">
+        <ion-label>Monat</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
     @if (streak() > 0) {
       <div class="streak-badge">
         <ion-icon name="flame"></ion-icon>
@@ -43,12 +61,20 @@
       <div class="chart-wrap">
         <canvas baseChart type="bar" [data]="chartData()" [options]="chartOptions()"></canvas>
       </div>
-      @if (isSelectedHabitBoolean()) {
-        <p class="summary">Erledigt an {{ doneDays() }} von 7 Tagen</p>
+      @if (period() === 'week') {
+        @if (isSelectedHabitBoolean()) {
+          <p class="summary">Erledigt an {{ doneDays() }} von 7 Tagen</p>
+        }
+      } @else {
+        @if (isSelectedHabitBoolean()) {
+          <p class="summary">Erledigt an {{ monthTotal() }} von {{ monthDayCount() }} Tagen</p>
+        } @else {
+          <p class="summary">Insgesamt {{ monthTotal() }} {{ unitLabel() }} diesen Monat</p>
+        }
       }
     } @else {
       <div class="empty-state">
-        <p>Noch keine Daten für diese Woche.</p>
+        <p>Noch keine Daten für {{ period() === 'week' ? 'diese Woche' : 'diesen Monat' }}.</p>
       </div>
     }
   }

@@ -93,6 +93,33 @@ describe('HabitStorageService', () => {
     expect(await service.getEntry(habit.id, '2026-09-04')).toEqual(second);
   });
 
+  it('does not create duplicate entries when two setEntry calls for the same habit/day race each other', async () => {
+    const habit = await service.addHabit({ name: 'Lesen', type: 'duration_min', goal: 30 });
+
+    // Weder awaited noch nacheinander — simuliert zwei schnelle Taps auf den
+    // +/- Stepper, deren Storage-Zugriffe sich sonst überlappen könnten.
+    const [first, second] = await Promise.all([
+      service.setEntry(habit.id, '2026-09-04', 10),
+      service.setEntry(habit.id, '2026-09-04', 20),
+    ]);
+
+    const entries = await service.getEntriesForHabit(habit.id);
+    expect(entries).toHaveLength(1);
+    expect(entries[0].value).toBe(second.value);
+    expect(first.id).toBe(second.id);
+  });
+
+  it('keeps every add when several habits are added concurrently', async () => {
+    const [first, second, third] = await Promise.all([
+      service.addHabit({ name: 'Meditation', type: 'boolean' }),
+      service.addHabit({ name: 'Lesen', type: 'duration_min', goal: 30 }),
+      service.addHabit({ name: 'Sport', type: 'count', goal: 1 }),
+    ]);
+
+    const habits = await service.getHabits();
+    expect(habits.map((habit) => habit.id).sort()).toEqual([first.id, second.id, third.id].sort());
+  });
+
   it('keeps entries for different days apart', async () => {
     const habit = await service.addHabit({ name: 'Lesen', type: 'duration_min', goal: 30 });
 
@@ -117,6 +144,15 @@ describe('HabitStorageService', () => {
 
   it('rejects updating a habit that does not exist', async () => {
     await expect(service.updateHabit('missing', { name: 'X', type: 'boolean' })).rejects.toThrow();
+  });
+
+  it('drops fields the new definition no longer has, instead of leaving them behind as stale data', async () => {
+    const habit = await service.addHabit({ name: 'Gym', type: 'boolean', frequency: 'weekly', weeklyGoal: 3 });
+
+    const updated = await service.updateHabit(habit.id, { name: 'Gym', type: 'duration_min', frequency: 'daily', goal: 30 });
+
+    expect(updated.weeklyGoal).toBeUndefined();
+    expect(await service.getHabits()).toEqual([updated]);
   });
 
   it('returns every recorded entry for a habit, across all days', async () => {

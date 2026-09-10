@@ -12,6 +12,7 @@ import {
   IonListHeader,
   IonModal,
   IonNote,
+  IonSpinner,
   IonTitle,
   IonToolbar,
   ToastController,
@@ -61,6 +62,7 @@ type FormMode = 'new' | Habit | null;
     IonListHeader,
     IonNote,
     IonModal,
+    IonSpinner,
     HabitItemComponent,
     NewHabitFormComponent,
   ],
@@ -70,6 +72,17 @@ export class TodayPage implements ViewWillEnter {
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
   private readonly date = today();
+
+  /**
+   * Whether the very first load is still in flight. Storage (IndexedDB) can
+   * take a moment to open, and until it resolves `habits` is just an empty
+   * signal — indistinguishable from actually having no habits. Without this,
+   * the page would flash "Noch keine Habits" before the real data (or the
+   * seeded demo habits) arrives. Only gates the first load: later reloads
+   * (tab revisits) never flip it back to `true`, so switching tabs doesn't
+   * re-flash the spinner.
+   */
+  readonly loading = signal(true);
 
   /** All stored habits. */
   readonly habits = signal<readonly Habit[]>([]);
@@ -182,6 +195,7 @@ export class TodayPage implements ViewWillEnter {
     this.values.set(new Map(entries));
 
     await this.reloadWeeklyProgress(habits.filter((habit) => habit.weeklyGoal != null));
+    this.loading.set(false);
   }
 
   /** Recomputes how many days this week each of the given habits was done. */

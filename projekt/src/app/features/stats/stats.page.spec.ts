@@ -4,7 +4,7 @@ import { signal } from '@angular/core';
 import { StatsPage } from './stats.page';
 import { formatDate } from '../../core/date.util';
 import { HabitStorageService } from '../../core/services/habit-storage.service';
-import { HabitWeekStats, StatsService } from '../../core/services/stats.service';
+import { HabitMonthStats, HabitWeekStats, StatsService } from '../../core/services/stats.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { Habit, HabitEntry } from '../../models/habit.model';
 
@@ -21,15 +21,25 @@ function flushPromises(): Promise<void> {
 }
 
 const WEEK_DATES = ['2026-09-04', '2026-09-05', '2026-09-06', '2026-09-07', '2026-09-08', '2026-09-09', '2026-09-10'];
+const MONTH_DATES = Array.from({ length: 10 }, (_, i) => `2026-09-${String(i + 1).padStart(2, '0')}`);
 
 function weekStatsWithValues(habit: Habit, values: number[], hasEntries = true, streak = 0): HabitWeekStats {
   return { habit, days: WEEK_DATES.map((date, i) => ({ date, value: values[i] })), hasEntries, streak };
 }
 
+function emptyMonthStats(habit: Habit): HabitMonthStats {
+  return { habit, days: MONTH_DATES.map((date) => ({ date, value: 0 })), hasEntries: false, streak: 0, total: 0 };
+}
+
+function monthStatsWithValues(habit: Habit, values: number[], hasEntries = true, streak = 0): HabitMonthStats {
+  const days = MONTH_DATES.map((date, i) => ({ date, value: values[i] ?? 0 }));
+  return { habit, days, hasEntries, streak, total: days.reduce((sum, day) => sum + day.value, 0) };
+}
+
 describe('StatsPage', () => {
   let fixture: ComponentFixture<StatsPage>;
   let habitStorage: { getHabits: ReturnType<typeof vi.fn> };
-  let statsService: { getWeekStats: ReturnType<typeof vi.fn> };
+  let statsService: { getWeekStats: ReturnType<typeof vi.fn>; getMonthStats: ReturnType<typeof vi.fn> };
 
   const meditation: Habit = {
     id: 'meditation',
@@ -49,6 +59,7 @@ describe('StatsPage', () => {
     habitStorage = { getHabits: vi.fn().mockResolvedValue([meditation, reading]) };
     statsService = {
       getWeekStats: vi.fn().mockResolvedValue(weekStatsWithValues(meditation, [0, 1, 0, 1, 0, 0, 1])),
+      getMonthStats: vi.fn().mockResolvedValue(emptyMonthStats(meditation)),
     };
 
     TestBed.configureTestingModule({
@@ -179,6 +190,136 @@ describe('StatsPage', () => {
     await flushPromises();
 
     expect(fixture.componentInstance.selectedHabitId()).toBe('meditation');
+  });
+
+  describe('loading state', () => {
+    /** Lets a test hold `habitStorage.getHabits()` unresolved to inspect the in-between loading state. */
+    function makeDeferredHabits(): { resolve: (habits: Habit[]) => void } {
+      let resolve!: (habits: Habit[]) => void;
+      habitStorage.getHabits.mockReturnValue(new Promise<Habit[]>((res) => (resolve = res)));
+      return { resolve };
+    }
+
+    it('shows a spinner (not the empty state) while storage is still loading for the first time', () => {
+      const deferred = makeDeferredHabits();
+      fixture = TestBed.createComponent(StatsPage);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.loading()).toBe(true);
+      expect(fixture.nativeElement.querySelector('ion-spinner')).not.toBeNull();
+      expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('Noch keine Habits angelegt');
+
+      deferred.resolve([]);
+    });
+
+    it('stops loading and hides the spinner once habits and stats have been fetched', async () => {
+      const deferred = makeDeferredHabits();
+      fixture = TestBed.createComponent(StatsPage);
+      fixture.detectChanges();
+
+      deferred.resolve([]);
+      await flushPromises();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.loading()).toBe(false);
+      expect(fixture.nativeElement.querySelector('ion-spinner')).toBeNull();
+    });
+
+    it('does not flash the spinner again on a later reload (e.g. a tab revisit)', async () => {
+      await flushPromises();
+      fixture.detectChanges();
+
+      fixture.componentInstance.ionViewWillEnter();
+
+      expect(fixture.componentInstance.loading()).toBe(false);
+    });
+  });
+
+  describe('month view', () => {
+    it('defaults to the week view', async () => {
+      await flushPromises();
+
+      expect(fixture.componentInstance.period()).toBe('week');
+    });
+
+    it('loads both week and month stats up front, so switching is instant', async () => {
+      await flushPromises();
+
+      expect(statsService.getWeekStats).toHaveBeenCalledWith(meditation);
+      expect(statsService.getMonthStats).toHaveBeenCalledWith(meditation);
+    });
+
+    it('switches the chart to the month stats when "Monat" is selected', async () => {
+      statsService.getMonthStats.mockResolvedValue(
+        monthStatsWithValues(meditation, [0, 1, 0, 1, 0, 0, 0, 0, 0, 1]),
+      );
+      fixture = TestBed.createComponent(StatsPage);
+      fixture.detectChanges();
+      await flushPromises();
+
+      fixture.componentInstance.onPeriodChange('month');
+
+      expect(fixture.componentInstance.chartData().datasets[0].data).toEqual([0, 1, 0, 1, 0, 0, 0, 0, 0, 1]);
+    });
+
+    it('labels the month chart by day-of-month instead of weekday', async () => {
+      statsService.getMonthStats.mockResolvedValue(monthStatsWithValues(meditation, [1, 0, 0, 0, 0, 0, 0, 0, 0, 1]));
+      fixture = TestBed.createComponent(StatsPage);
+      fixture.detectChanges();
+      await flushPromises();
+
+      fixture.componentInstance.onPeriodChange('month');
+
+      expect(fixture.componentInstance.chartData().labels).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']);
+    });
+
+    it('shows the done-days summary for a boolean habit in the month view', async () => {
+      statsService.getMonthStats.mockResolvedValue(
+        monthStatsWithValues(meditation, [1, 0, 1, 0, 1, 0, 0, 0, 0, 0]),
+      );
+      fixture = TestBed.createComponent(StatsPage);
+      fixture.detectChanges();
+      await flushPromises();
+      fixture.componentInstance.onPeriodChange('month');
+      fixture.detectChanges();
+
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).toContain('Erledigt an 3 von 10 Tagen');
+    });
+
+    it('shows the total-sum summary for a numeric habit in the month view', async () => {
+      statsService.getMonthStats.mockResolvedValue(monthStatsWithValues(reading, [10, 0, 15, 0, 0, 0, 0, 0, 0, 5]));
+      fixture = TestBed.createComponent(StatsPage);
+      fixture.detectChanges();
+      await flushPromises();
+      await fixture.componentInstance.onHabitChange('lesen');
+      fixture.componentInstance.onPeriodChange('month');
+      fixture.detectChanges();
+
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).toContain('Insgesamt 30 Minuten diesen Monat');
+    });
+
+    it('shows the month-specific empty state when the month has no entries', async () => {
+      await flushPromises();
+      fixture.componentInstance.onPeriodChange('month');
+      fixture.detectChanges();
+
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).toContain('Noch keine Daten für diesen Monat.');
+    });
+
+    it('keeps showing the same streak in the month view as in the week view', async () => {
+      statsService.getWeekStats.mockResolvedValue(weekStatsWithValues(meditation, [0, 1, 0, 1, 0, 0, 1], true, 4));
+      statsService.getMonthStats.mockResolvedValue(monthStatsWithValues(meditation, [], true, 4));
+      fixture = TestBed.createComponent(StatsPage);
+      fixture.detectChanges();
+      await flushPromises();
+
+      fixture.componentInstance.onPeriodChange('month');
+
+      expect(fixture.componentInstance.streak()).toBe(4);
+    });
   });
 });
 

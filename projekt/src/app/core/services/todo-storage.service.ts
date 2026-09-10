@@ -1,17 +1,20 @@
 import { Injectable, inject } from '@angular/core';
 import { Storage } from '@ionic/storage-angular';
 
+import { AsyncWriteQueue } from '../async-write-queue.util';
 import { Todo } from '../../models/todo.model';
 
 const TODOS_KEY = 'todos';
 
 /**
  * Persists todos via Ionic Storage, as a single array under one key — see
- * `HabitStorageService` for why that's enough for this app's data size.
+ * `HabitStorageService` for why that's enough for this app's data size, and
+ * `AsyncWriteQueue` for why every mutating method runs through `writeQueue`.
  */
 @Injectable({ providedIn: 'root' })
 export class TodoStorageService {
   private readonly storage = inject(Storage);
+  private readonly writeQueue = new AsyncWriteQueue();
   private ready: Promise<unknown> | null = null;
 
   private ensureReady(): Promise<unknown> {
@@ -52,16 +55,18 @@ export class TodoStorageService {
   /** Creates a new todo and persists it. */
   async addTodo(input: { text: string; date: string }): Promise<Todo> {
     await this.ensureReady();
-    const todo: Todo = {
-      ...input,
-      id: crypto.randomUUID(),
-      done: false,
-      createdAt: new Date().toISOString(),
-      order: Date.now(),
-    };
-    const todos = await this.getTodos();
-    await this.storage.set(TODOS_KEY, [...todos, todo]);
-    return todo;
+    return this.writeQueue.run(async () => {
+      const todo: Todo = {
+        ...input,
+        id: crypto.randomUUID(),
+        done: false,
+        createdAt: new Date().toISOString(),
+        order: Date.now(),
+      };
+      const todos = await this.getTodos();
+      await this.storage.set(TODOS_KEY, [...todos, todo]);
+      return todo;
+    });
   }
 
   /**
@@ -73,13 +78,15 @@ export class TodoStorageService {
    */
   async reorderTodos(orderedIds: readonly string[]): Promise<void> {
     await this.ensureReady();
-    const positionById = new Map(orderedIds.map((id, index) => [id, index] as const));
-    const todos = await this.getTodos();
-    const next = todos.map((todo) => {
-      const order = positionById.get(todo.id);
-      return order == null ? todo : { ...todo, order };
+    return this.writeQueue.run(async () => {
+      const positionById = new Map(orderedIds.map((id, index) => [id, index] as const));
+      const todos = await this.getTodos();
+      const next = todos.map((todo) => {
+        const order = positionById.get(todo.id);
+        return order == null ? todo : { ...todo, order };
+      });
+      await this.storage.set(TODOS_KEY, next);
     });
-    await this.storage.set(TODOS_KEY, next);
   }
 
   /** Marks a todo done or open again. */
@@ -95,25 +102,29 @@ export class TodoStorageService {
   /** Removes a todo. */
   async deleteTodo(id: string): Promise<void> {
     await this.ensureReady();
-    const todos = await this.getTodos();
-    await this.storage.set(
-      TODOS_KEY,
-      todos.filter((todo) => todo.id !== id),
-    );
+    return this.writeQueue.run(async () => {
+      const todos = await this.getTodos();
+      await this.storage.set(
+        TODOS_KEY,
+        todos.filter((todo) => todo.id !== id),
+      );
+    });
   }
 
   private async updateTodo(id: string, changes: Partial<Pick<Todo, 'done' | 'date'>>): Promise<Todo> {
     await this.ensureReady();
-    const todos = await this.getTodos();
-    const index = todos.findIndex((todo) => todo.id === id);
-    if (index === -1) {
-      throw new Error(`Todo ${id} does not exist`);
-    }
+    return this.writeQueue.run(async () => {
+      const todos = await this.getTodos();
+      const index = todos.findIndex((todo) => todo.id === id);
+      if (index === -1) {
+        throw new Error(`Todo ${id} does not exist`);
+      }
 
-    const updated: Todo = { ...todos[index], ...changes };
-    const next = [...todos];
-    next[index] = updated;
-    await this.storage.set(TODOS_KEY, next);
-    return updated;
+      const updated: Todo = { ...todos[index], ...changes };
+      const next = [...todos];
+      next[index] = updated;
+      await this.storage.set(TODOS_KEY, next);
+      return updated;
+    });
   }
 }

@@ -49,9 +49,9 @@ export type NewHabitFormValue = Omit<Habit, 'id' | 'createdAt'>;
  * Einstellungen" section (step size, custom unit, color). Emits `save` with
  * a ready-to-persist value once the form is valid.
  *
- * Pass an existing `habit` to edit it — the form is prefilled, and `type`
- * and `frequency` become read-only, since changing either would make past
- * entries ambiguous.
+ * Pass an existing `habit` to edit it — the form is prefilled, `type` and
+ * `frequency` included: changing either only affects how future entries are
+ * recorded/interpreted, past entries are left as they are.
  */
 @Component({
   selector: 'app-new-habit-form',
@@ -172,11 +172,6 @@ export class NewHabitFormComponent implements OnInit {
       unit: habit.unit ?? '',
       step: habit.step ?? 1,
     });
-    // Changing type or frequency after creation would make past entries
-    // ambiguous (e.g. old "20 Minuten" entries under a habit switched to
-    // Ja/Nein, or daily entries under a habit switched to a weekly target).
-    this.form.controls.type.disable();
-    this.form.controls.frequency.disable();
   }
 
   /** Picks an icon, or clears the selection when tapping the already-selected one. */

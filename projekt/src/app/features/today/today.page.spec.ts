@@ -214,4 +214,47 @@ describe('TodayPage', () => {
 
     expect(fixture.componentInstance.habits()).toEqual([]);
   });
+
+  describe('loading state', () => {
+    /** Lets a test hold `storage.getHabits()` unresolved to inspect the in-between loading state. */
+    function makeDeferredHabits(): { resolve: (habits: Habit[]) => void } {
+      let resolve!: (habits: Habit[]) => void;
+      storage.getHabits.mockReturnValue(new Promise<Habit[]>((res) => (resolve = res)));
+      return { resolve };
+    }
+
+    it('shows a spinner (not the empty state) while storage is still loading for the first time', () => {
+      const deferred = makeDeferredHabits();
+      fixture = TestBed.createComponent(TodayPage);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.loading()).toBe(true);
+      expect(fixture.nativeElement.querySelector('ion-spinner')).not.toBeNull();
+      expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('Noch keine Habits');
+
+      deferred.resolve([]);
+    });
+
+    it('stops loading and hides the spinner once habits and entries have been fetched', async () => {
+      const deferred = makeDeferredHabits();
+      fixture = TestBed.createComponent(TodayPage);
+      fixture.detectChanges();
+
+      deferred.resolve([]);
+      await flushPromises();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.loading()).toBe(false);
+      expect(fixture.nativeElement.querySelector('ion-spinner')).toBeNull();
+    });
+
+    it('does not flash the spinner again on a later reload (e.g. a tab revisit)', async () => {
+      await flushPromises();
+      fixture.detectChanges();
+
+      fixture.componentInstance.ionViewWillEnter();
+
+      expect(fixture.componentInstance.loading()).toBe(false);
+    });
+  });
 });

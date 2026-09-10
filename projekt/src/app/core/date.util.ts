@@ -35,3 +35,14 @@ export function datesThisWeekUpTo(date: Date): string[] {
   }
   return dates;
 }
+
+/** "YYYY-MM-DD" dates from the 1st of `date`'s calendar month through `date`, inclusive. */
+export function datesThisMonthUpTo(date: Date): string[] {
+  const firstOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+
+  const dates: string[] = [];
+  for (const cursor = new Date(firstOfMonth); cursor <= date; cursor.setDate(cursor.getDate() + 1)) {
+    dates.push(formatDate(cursor));
+  }
+  return dates;
+}

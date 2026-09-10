@@ -11,6 +11,7 @@ import {
   IonListHeader,
   IonNote,
   IonReorderGroup,
+  IonSpinner,
   IonTitle,
   IonToolbar,
   ReorderEndCustomEvent,
@@ -62,12 +63,19 @@ function byOrder(a: Todo, b: Todo): number {
     IonListHeader,
     IonNote,
     IonReorderGroup,
+    IonSpinner,
     TodoItemComponent,
   ],
 })
 export class TodosPage implements ViewWillEnter {
   private readonly storage = inject(TodoStorageService);
   private readonly date = today();
+
+  /**
+   * Whether the very first load is still in flight — see `TodayPage.loading`
+   * for why this exists and why it never flips back to `true`.
+   */
+  readonly loading = signal(true);
 
   /** All stored todos. */
   readonly todos = signal<readonly Todo[]>([]);
@@ -135,5 +143,6 @@ export class TodosPage implements ViewWillEnter {
 
   private async reload(): Promise<void> {
     this.todos.set(await this.storage.getTodos());
+    this.loading.set(false);
   }
 }

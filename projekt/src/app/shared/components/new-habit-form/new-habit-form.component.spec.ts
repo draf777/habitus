@@ -233,9 +233,43 @@ describe('NewHabitFormComponent', () => {
       });
     });
 
-    it('disables type and frequency so neither can be changed', () => {
-      expect(component.form.controls.type.disabled).toBe(true);
-      expect(component.form.controls.frequency.disabled).toBe(true);
+    it('leaves type and frequency editable', () => {
+      expect(component.form.controls.type.disabled).toBe(false);
+      expect(component.form.controls.frequency.disabled).toBe(false);
+    });
+
+    it('emits a clean value when the type is changed while editing, dropping fields the new type no longer uses', () => {
+      const saved = vi.fn();
+      component.save.subscribe(saved);
+
+      component.form.controls.type.setValue('boolean');
+      component.submit();
+
+      expect(saved).toHaveBeenCalledWith({
+        name: 'Lesen',
+        type: 'boolean',
+        frequency: 'daily',
+        icon: 'book-outline',
+        color: '#2dd55b',
+      });
+    });
+
+    it('emits weeklyGoal (and switches type to boolean) when frequency is changed to weekly while editing', () => {
+      const saved = vi.fn();
+      component.save.subscribe(saved);
+
+      component.form.controls.frequency.setValue('weekly');
+      component.form.controls.weeklyGoal.setValue(3);
+      component.submit();
+
+      expect(saved).toHaveBeenCalledWith({
+        name: 'Lesen',
+        type: 'boolean',
+        frequency: 'weekly',
+        weeklyGoal: 3,
+        icon: 'book-outline',
+        color: '#2dd55b',
+      });
     });
 
     it('emits the updated value on save, keeping the original type and frequency', () => {
@@ -289,6 +323,18 @@ describe('NewHabitFormComponent', () => {
       component.submit();
 
       expect(saved).toHaveBeenCalledWith({ name: 'Gym', type: 'boolean', frequency: 'weekly', weeklyGoal: 4 });
+    });
+
+    it('drops weeklyGoal when frequency is switched back to daily while editing', () => {
+      const saved = vi.fn();
+      component.save.subscribe(saved);
+
+      component.form.controls.frequency.setValue('daily');
+      component.form.controls.type.setValue('count');
+      component.form.controls.goal.setValue(5);
+      component.submit();
+
+      expect(saved).toHaveBeenCalledWith({ name: 'Gym', type: 'count', frequency: 'daily', goal: 5, step: 1 });
     });
   });
 });

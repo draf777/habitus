@@ -2,9 +2,30 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Neueste Version zuoberst.
 
-## [0.4.0] - 2026-09-10
+## [0.5.0] - 2026-09-10
 
 Aktuelle Version.
+
+### Added
+
+- Statistik-Tab: Monatsansicht (Diagramm über den aktuellen Kalendermonat pro Habit) zusätzlich zur Wochenansicht, per Umschalter (Woche/Monat) wechselbar
+- Statistik-Monatsansicht zeigt eine Summen-Kennzahl (Ja/Nein-Habits: "Erledigt an X von Y Tagen"; Zahlen-Habits: Monatssumme in der jeweiligen Einheit)
+- Habit bearbeiten: Typ und Häufigkeit sind jetzt auch nachträglich änderbar (vorher nach dem Anlegen gesperrt); bereits erfasste Einträge werden dabei nicht automatisch angepasst
+- Unit-Tests für die Monatslogik in StatsService (inkl. Monatsgrenzen), weitere Streak-Testfälle sowie für das Bearbeiten von Typ/Häufigkeit
+
+### Fixed
+
+- Zwei schnell aufeinanderfolgende Änderungen am selben Habit/Tag (z. B. doppeltes Antippen des +/- Steppers) konnten wegen einer Race Condition beim Lesen/Schreiben im Storage zu doppelten Einträgen für denselben Tag führen, statt den vorherigen zu überschreiben; betraf ebenso TodoStorageService. Schreibzugriffe laufen jetzt pro Service über eine gemeinsame Warteschlange (AsyncWriteQueue) und damit nacheinander ab.
+- HabitStorageService.updateHabit() ersetzte bisherige Felder per Merge statt richtig zu überschreiben, wodurch nicht mehr passende Werte (z. B. weeklyGoal nach einem Wechsel von "pro Woche" auf "täglich") als Datenleichen erhalten blieben
+- Todos: der leere "Heute"-Abschnitt verletzte eine Accessibility-Regel (aria-required-children), weil der Hinweistext kein `ion-item` war; Lighthouse-Accessibility jetzt auf allen vier Tabs bei 100
+- "Heute", "Todos" und "Statistik" zeigten beim allerersten Laden kurz fälschlich "keine Daten" (bzw. die Demo-Daten fehlten noch), bevor Storage bereit war; zeigen jetzt einen Ladeindikator statt des Leer-Zustands, bis die Daten wirklich geladen sind
+
+### Changed
+
+- Testabdeckung für Storage-Edgecases (nebenläufige Schreibzugriffe) erhöht
+- "Über"-Seite aufgeräumt: Links zu README und Repository entfernt, "Status" als eigener Abschnitt statt mit Autor/Version/Links in einer Liste vermischt
+
+## [0.4.0] - 2026-09-10
 
 ### Added
 

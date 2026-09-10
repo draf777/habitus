@@ -172,4 +172,101 @@ describe('StatsService', () => {
       expect(stats.streak).toBe(2);
     });
   });
+
+  describe('getMonthStats', () => {
+    it('returns the days from the 1st of the month through the reference date, oldest first', async () => {
+      const stats = await service.getMonthStats(readingHabit, referenceDate);
+
+      expect(stats.days[0].date).toBe('2026-09-01');
+      expect(stats.days.at(-1)!.date).toBe('2026-09-10');
+      expect(stats.days).toHaveLength(10);
+    });
+
+    it('fills in the recorded value per day for a numeric habit, defaulting to 0', async () => {
+      storage.getEntriesForHabit.mockResolvedValue([
+        { id: 'e1', habitId: 'lesen', date: '2026-09-03', value: 15 },
+        { id: 'e2', habitId: 'lesen', date: '2026-08-31', value: 99 }, // vorheriger Monat
+      ]);
+
+      const stats = await service.getMonthStats(readingHabit, referenceDate);
+
+      expect(stats.days.find((day) => day.date === '2026-09-03')?.value).toBe(15);
+      expect(stats.days.find((day) => day.date === '2026-09-01')?.value).toBe(0);
+      expect(stats.days.some((day) => day.date === '2026-08-31')).toBe(false);
+    });
+
+    it('reduces boolean habits to 0/1 per day, same as the week view', async () => {
+      storage.getEntriesForHabit.mockResolvedValue([{ id: 'e1', habitId: 'meditation', date: '2026-09-05', value: 1 }]);
+
+      const stats = await service.getMonthStats(meditationHabit, referenceDate);
+
+      expect(stats.days.find((day) => day.date === '2026-09-05')?.value).toBe(1);
+    });
+
+    it('sums every day\'s value into total, for a numeric habit', async () => {
+      storage.getEntriesForHabit.mockResolvedValue([
+        { id: 'e1', habitId: 'lesen', date: '2026-09-01', value: 10 },
+        { id: 'e2', habitId: 'lesen', date: '2026-09-05', value: 25 },
+        { id: 'e3', habitId: 'lesen', date: '2026-08-31', value: 99 }, // ausserhalb des Monats
+      ]);
+
+      const stats = await service.getMonthStats(readingHabit, referenceDate);
+
+      expect(stats.total).toBe(35);
+    });
+
+    it('sums a boolean habit\'s total as its count of done days', async () => {
+      storage.getEntriesForHabit.mockResolvedValue([
+        { id: 'e1', habitId: 'meditation', date: '2026-09-01', value: 1 },
+        { id: 'e2', habitId: 'meditation', date: '2026-09-05', value: 1 },
+        { id: 'e3', habitId: 'meditation', date: '2026-09-06', value: 0 },
+      ]);
+
+      const stats = await service.getMonthStats(meditationHabit, referenceDate);
+
+      expect(stats.total).toBe(2);
+    });
+
+    it('has no entries and a total of 0 when nothing was recorded this month', async () => {
+      const stats = await service.getMonthStats(readingHabit, referenceDate);
+
+      expect(stats.hasEntries).toBe(false);
+      expect(stats.total).toBe(0);
+    });
+
+    it('has entries when at least one day this month was recorded, even with value 0', async () => {
+      storage.getEntriesForHabit.mockResolvedValue([{ id: 'e1', habitId: 'meditation', date: '2026-09-02', value: 0 }]);
+
+      const stats = await service.getMonthStats(meditationHabit, referenceDate);
+
+      expect(stats.hasEntries).toBe(true);
+    });
+
+    it('computes the same streak as the week view, since it does not depend on the shown window', async () => {
+      storage.getEntriesForHabit.mockResolvedValue([
+        { id: 'e1', habitId: 'meditation', date: '2026-09-09', value: 1 },
+        { id: 'e2', habitId: 'meditation', date: '2026-09-10', value: 1 },
+      ]);
+
+      const stats = await service.getMonthStats(meditationHabit, referenceDate);
+
+      expect(stats.streak).toBe(2);
+    });
+
+    it('spans a month boundary correctly, from the 1st through the reference date', async () => {
+      // Dienstag, 2026-10-06 — der Monat beginnt am 2026-10-01.
+      const octoberReferenceDate = new Date(2026, 9, 6);
+
+      const stats = await service.getMonthStats(readingHabit, octoberReferenceDate);
+
+      expect(stats.days.map((day) => day.date)).toEqual([
+        '2026-10-01',
+        '2026-10-02',
+        '2026-10-03',
+        '2026-10-04',
+        '2026-10-05',
+        '2026-10-06',
+      ]);
+    });
+  });
 });

@@ -17,6 +17,19 @@
   </section>
 
   <ion-list [inset]="true">
+    <ion-list-header>Status</ion-list-header>
+
+    <ion-item lines="none">
+      <ion-label class="ion-text-wrap">
+        <p>
+          „Heute“, „Todos“ und „Statistik“ funktionieren mit deinen eigenen Daten: Habits bzw. Aufgaben anlegen,
+          abhaken/eintragen und löschen wird gespeichert, und das Wochendiagramm zeigt deine echten Werte.
+        </p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-list [inset]="true">
     <ion-list-header>Projekt</ion-list-header>
 
     <ion-item>
@@ -24,27 +37,9 @@
       <ion-note slot="end">{{ info.author }}</ion-note>
     </ion-item>
 
-    <ion-item>
+    <ion-item lines="none">
       <ion-label>Version</ion-label>
       <ion-note slot="end">{{ info.version }}</ion-note>
-    </ion-item>
-
-    <ion-item>
-      <ion-label class="ion-text-wrap">
-        <h2>Status</h2>
-        <p>
-          „Heute“, „Todos“ und „Statistik“ funktionieren mit deinen eigenen Daten: Habits bzw. Aufgaben anlegen,
-          abhaken/eintragen und löschen wird gespeichert, und das Wochendiagramm zeigt deine echten Werte.
-        </p>
-      </ion-label>
-    </ion-item>
-
-    <ion-item [href]="info.readmeUrl" target="_blank" rel="noopener" [detail]="true">
-      <ion-label>README auf GitLab</ion-label>
-    </ion-item>
-
-    <ion-item [href]="info.repositoryUrl" target="_blank" rel="noopener" [detail]="true">
-      <ion-label>Repository</ion-label>
     </ion-item>
   </ion-list>
 

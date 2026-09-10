@@ -16,7 +16,7 @@
 * Hinweis-Banner ergänzt: die Seiten Heute, Statistik und Todos sagen jetzt selbst, dass sie Demo-Daten zeigen und das Abhaken/Speichern noch nicht funktioniert. Grund: eine deaktivierte Checkbox sieht sonst nach einem Bug aus statt nach einem noch nicht gebauten Feature.
 * README, CHANGELOG und Store-Beschreibung entsprechend auf den tatsächlichen Funktionsumfang von v0.1.0 korrigiert.
 
-## 4.9.
+## 4.9. Morgen
 
 * Datenmodell Habit/HabitEntry/Todo implementiert, HabitStorageService kapselt Ionic Storage.
 * Entscheidung Habit-Typen: vier feste Tracking-Typen (Minuten, Stunden, Anzahl, Ja/Nein) statt freier Einheit, damit die Erfassung beim Anlegen ein einziges Dropdown bleibt und trotzdem die meisten Alltags-Habits abgedeckt sind.
@@ -25,7 +25,7 @@
 * Erste Unit-Tests für Storage-Service und Validatoren geschrieben.
 * Manuell im Browser geprüft: Habit anlegen, Wert eintragen, Reload — Daten bleiben erhalten; Löschen funktioniert.
 
-## 4.9., 18:00
+## 4.9., Nachmittag
 
 - Todo-Tab implementiert (TodoStorageService, täglich erfassen/abhaken/löschen).
 - Zwei Farbschemen (Ocean: Teal, Sunset: Orange) je in Hell/Dunkel umgesetzt, über SettingsService + CSS-Custom-Properties, Wahl wird persistiert.
@@ -33,25 +33,18 @@
 - Layout auf Tablet-Breite/Landscape gegengeprüft, Grid-Breakpoints angepasst.
 - v0.3.0 getaggt, live deployed.
 
-## 10.9., 12:00
+## 10.9., Morgen
 
-- Statistik-Tab mit Wochendiagramm (ng2-charts/Chart.js) pro Habit umgesetzt, StatsService kapselt die Aggregation.
-- Entscheidung Chart-Library: ng2-charts/Chart.js statt ngx-charts oder ApexCharts, weil aktiv gepflegt, standalone-fähig und Farben sich sauber an die eigenen Theme-Variablen binden lassen (wichtig für 2 Farbschemen × Hell/Dunkel).
-- Ja/Nein-Habits werden in der Statistik als "erledigt an X von 7 Tagen" gezählt.
-- Unit-Tests für StatsService (inkl. Randfälle ohne Einträge) ergänzt.
-- Beim ersten Start werden jetzt automatisch zwei Beispiel-Habits (eine bereits mit gefüllter letzter Woche, damit "Statistik" nicht leer ist) und zwei Beispiel-Todos angelegt, statt dass die App komplett leer startet.
-- Unter "Über" > "Daten" lassen sich diese Demo-Daten mit einem Klick wieder vollständig löschen; getrackt wird das über die tatsächlich angelegten IDs, nicht über Namen, damit eigene, später angelegte Daten nie versehentlich mitgelöscht werden und die Demo-Daten nach dem Löschen auch nicht erneut erscheinen.
-- Beim Testen im Browser (nicht nur mit Unit-Tests) aufgefallen: "Statistik" (und potenziell "Heute"/"Todos") zeigten veraltete Daten, wenn man Habits/Todos auf einem anderen Tab änderte, weil Ionic die Tab-Seiten im Hintergrund am Leben hält statt sie neu zu erzeugen. Mit `ionViewWillEnter` auf allen drei Seiten behoben.
-- Statistik zeigt jetzt zusätzlich den aktuellen Streak (Tage am Stück) pro Habit, als Badge über dem Diagramm. Der Streak zählt rückwärts ab heute, bricht aber nicht sofort ab, wenn der heutige Eintrag noch fehlt — erst ein tatsächlich verpasster Tag beendet ihn.
-- Beim Feintuning der Demo-Daten (letzte 3 Tage erledigt, davor eine Lücke, davor nochmal ein Tag) einen Bug im Streak gefunden: die Berechnung brach an `habit.createdAt` ab, weil das Demo-Habit "heute" angelegt wird, die Einträge aber rückdatiert sind. Da echte Habits über die UI ohnehin nie rückdatierte Einträge bekommen können, die Grenze ersatzlos entfernt statt die Demo-Daten künstlich anzupassen.
-  - Zu lange Todo-Texte wurden abgeschnitten, weil der Text bisher im Label von `ion-checkbox` lag, das intern per CSS immer auf eine Zeile mit "…" kürzt (dafür gibt es keinen offiziellen Override). Text jetzt in einem separaten `ion-label` daneben, das normal umbricht, statt zu kürzen.
-  - Links im Todo-Text werden jetzt per eigenem `linkify()`-Util automatisch erkannt und klickbar gemacht (http/https/www., HTML zuerst escaped, dann `<a>` eingefügt — sicher für `[innerHTML]`).
-  - Todos lassen sich jetzt per Drag & Drop frei sortieren (Ionics `ion-reorder-group`), statt fester Prioritätsstufen
-  - Todos-Tab jetzt in drei Abschnitte gegliedert: Heute, frühere noch offene Todos (bisher verschwanden die einfach), Erledigt — beide letzteren weiterhin vollständig löschbar.
-  - Alles in einem echten Browser end-to-end geprüft, inkl. simuliertem Drag-and-drop (mit Mouse-Events, da Ionics Reorder-Geste kein natives HTML5-DnD nutzt) — Reihenfolge blieb auch nach vollständigem Seiten-Reload erhalten.
-- "Sortieren"-Modus wieder entfernt: der Ziehpunkt ist jetzt permanent direkt neben dem Löschen-Symbol sichtbar statt hinter einem eigenen Modus versteckt. Ionics Reorder-Geste greift ohnehin nur, wenn man den Ziehpunkt selbst anfasst, daher kollidiert sie gar nicht erst mit der Wisch-zum-Löschen-Geste; der eigene Modus war unnötige Vorsicht.
-- Dabei eine Lücke in der bisherigen Browser-Testmethode entdeckt: ein schmaler Viewport (420px) allein reicht nicht, um Ionics "mobile" Erkennung (`Platform.is('mobile')`) zu triggern — ohne echte Touch-/User-Agent-Emulation (Playwrights `devices['Pixel 5']`) rendert die App immer den Desktop-Zweig, auch bei Handy-Breite. Alle bisherigen "Mobile"-Browsertests in dieser Session haben dadurch nie wirklich den Wisch-Pfad geprüft. Mit echter Geräte-Emulation nachgeholt: Ziehen und Wischen funktionieren nebeneinander wie vorgesehen.
-- Demo-Daten um zwei weitere Todos ergänzt (eines aus der Vergangenheit noch offen, eines aus der Vergangenheit bereits erledigt), damit alle drei Abschnitte auf "Todos" von Anfang an gefüllt sind statt nur "Heute".
-- Datumsangabe bei "Frühere"/"Erledigt" wieder entfernt. Frühere, noch offene Todos lassen sich jetzt direkt zu "Heute" verschieben — per Wisch-Aktion (Mobile) bzw. eigenem Button (Desktop), gleiches Icon wie der "Heute"-Tab. TodoStorageService.setDate() ergänzt, setDone()/setDate() teilen sich jetzt eine gemeinsame updateTodo()-Hilfsfunktion.
-- Dabei einen echten Rendering-Bug im Browser gefunden (in den Unit-Tests unsichtbar, da dort kein echtes Stencil-Hydration läuft): `[innerHTML]` direkt auf `ion-label` gebunden liess den Text komplett verschwinden — Ionic ersetzte ihn durch einen unsichtbaren `<!--s-nt-...-->`-Platzhalter-Kommentar, offenbar weil `ion-label` eine Shadow-DOM/Slot-Komponente ist und die rohe innerHTML-Zuweisung mit Stencils Slot-Relocation kollidiert. Behoben, indem `[innerHTML]` stattdessen auf ein einfaches `<span>` innerhalb des Labels gesetzt wird (kein Shadow DOM, keine Slot-Logik) — genau das Muster, das vorher schon zuverlässig funktioniert hatte, bevor es für das (inzwischen wieder entfernte) Datums-Label kurzzeitig vereinfacht wurde.
+- Statistik-Tab mit Wochendiagramm pro Habit umgesetzt (ng2-charts/Chart.js — aktiv gepflegt, standalone-fähig, Farben binden sich sauber an die Theme-Variablen), StatsService kapselt die Aggregation. Ja/Nein-Habits als "erledigt an X von 7 Tagen"; Unit-Tests ergänzt.
+- Bug behoben: Statistik (und potenziell Heute/Todos) zeigten nach Tab-Wechsel veraltete Daten, weil Ionic die Tab-Seiten im Hintergrund am Leben hält statt neu zu erzeugen — mit `ionViewWillEnter` auf allen drei Seiten gelöst.
+- Statistik zeigt jetzt den aktuellen Streak als Badge (bricht erst bei einem tatsächlich verpassten Tag, nicht schon wenn "heute" noch fehlt). Dabei einen Bug gefunden und behoben: die Berechnung brach fälschlich an `habit.createdAt` ab.
+- Erststart legt jetzt automatisch zwei Beispiel-Habits (inkl. gefüllter letzter Woche) sowie vier Beispiel-Todos an, statt dass die App leer startet; unter "Über" > "Daten" lassen sich diese anhand ihrer tatsächlichen IDs (nicht Namen) wieder vollständig und gefahrlos löschen.
+- Todos: langer Text wurde bisher abgeschnitten (Kürzung durch `ion-checkbox`) — behoben mit separatem, umbrechendem `ion-label`. Links im Text werden jetzt automatisch erkannt und klickbar (eigenes `linkify()`-Util). Frei sortierbar per Drag & Drop (`ion-reorder-group`), Ziehpunkt permanent sichtbar statt hinter einem eigenen Sortier-Modus. Drei Abschnitte (Heute, frühere offene, Erledigt) statt bisher verschwindender älterer Todos; frühere offene Todos lassen sich direkt zu "Heute" verschieben (`TodoStorageService.setDate()`).
+- Zwei Bugs nur im echten Browser gefunden, in Unit-Tests unsichtbar: `[innerHTML]` direkt auf `ion-label` liess Text verschwinden (Shadow-DOM/Slot-Konflikt, behoben über ein `<span>` im Label); ausserdem triggert ein schmaler Viewport allein nicht Ionics Mobile-Erkennung — ohne echte Touch-/UA-Emulation testet man unbemerkt immer den Desktop-Pfad. Mit Playwright-Geräteemulation nachgeholt.
 - v0.4.0 getaggt, live deployed.
+
+## 10.9., Nachmittag
+
+- Monatsansicht in der Statistik ergänzt (Umschalter Woche/Monat). StatsService.getMonthStats() liefert die Tage vom 1. des Monats bis zum Referenzdatum plus eine Monatssumme; der Streak bleibt unverändert (er hängt nicht vom Anzeigezeitraum ab, deshalb selbe Berechnung wie bisher). Woche und Monat werden beim Laden parallel geholt, damit der Umschalter ohne erneutes Nachladen reagiert.
+- Bekannte Bugs aus vorherigen Releases behoben (u.a. doppelte Einträge pro Tag): HabitStorageService.setEntry() und die übrigen schreibenden Methoden in Habit-/TodoStorageService lasen das gespeicherte Array und schrieben es ungesperrt zurück — zwei schnell aufeinanderfolgende Aufrufe (z. B. doppeltes Antippen des +/- Steppers) konnten beide denselben alten Stand lesen und sich dadurch gegenseitig überschreiben, statt den jeweils anderen Eintrag zu berücksichtigen. Behoben mit einer kleinen AsyncWriteQueue, über die jetzt alle mutierenden Methoden beider Storage-Services laufen und dadurch strikt nacheinander abgearbeitet werden.
+- Testabdeckung erhöht: StatsService-Monatslogik (inkl. Monatsgrenzen), eigene Tests für die Race-Condition-Fixes in Habit-/TodoStorageService sowie für AsyncWriteQueue selbst.

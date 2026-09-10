@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Storage } from '@ionic/storage-angular';
 
+import { AsyncWriteQueue } from '../async-write-queue.util';
 import { Habit, HabitEntry } from '../../models/habit.model';
 
 const HABITS_KEY = 'habits';
@@ -12,10 +13,15 @@ const ENTRIES_KEY = 'entries';
  * Both are kept as a single array under one key each — the data set of a
  * personal habit tracker is small enough that this stays simple and fast
  * enough, and it avoids a bespoke key scheme per habit/day.
+ *
+ * Every mutating method reads the current array, then writes back a new one
+ * — not atomic on its own, so they run through `writeQueue` to serialize
+ * against each other (see `AsyncWriteQueue`).
  */
 @Injectable({ providedIn: 'root' })
 export class HabitStorageService {
   private readonly storage = inject(Storage);
+  private readonly writeQueue = new AsyncWriteQueue();
   private ready: Promise<unknown> | null = null;
 
   private ensureReady(): Promise<unknown> {
@@ -35,46 +41,58 @@ export class HabitStorageService {
   /** Creates a new habit and persists it. */
   async addHabit(input: Omit<Habit, 'id' | 'createdAt'>): Promise<Habit> {
     await this.ensureReady();
-    const habit: Habit = {
-      ...input,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-    };
-    const habits = await this.getHabits();
-    await this.storage.set(HABITS_KEY, [...habits, habit]);
-    return habit;
+    return this.writeQueue.run(async () => {
+      const habit: Habit = {
+        ...input,
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+      };
+      const habits = await this.getHabits();
+      await this.storage.set(HABITS_KEY, [...habits, habit]);
+      return habit;
+    });
   }
 
-  /** Updates an existing habit's fields, keeping its `id` and `createdAt`. */
+  /**
+   * Replaces an existing habit's fields, keeping only its `id` and
+   * `createdAt`. `changes` is the habit's complete new definition (not a
+   * partial patch) — e.g. a field left out because the new `type` doesn't
+   * use it (like `weeklyGoal` after switching off a weekly frequency) is
+   * dropped, not left behind as stale data from the old definition.
+   */
   async updateHabit(id: string, changes: Omit<Habit, 'id' | 'createdAt'>): Promise<Habit> {
     await this.ensureReady();
-    const habits = await this.getHabits();
-    const index = habits.findIndex((habit) => habit.id === id);
-    if (index === -1) {
-      throw new Error(`Habit ${id} does not exist`);
-    }
+    return this.writeQueue.run(async () => {
+      const habits = await this.getHabits();
+      const index = habits.findIndex((habit) => habit.id === id);
+      if (index === -1) {
+        throw new Error(`Habit ${id} does not exist`);
+      }
 
-    const updated: Habit = { ...habits[index], ...changes };
-    const next = [...habits];
-    next[index] = updated;
-    await this.storage.set(HABITS_KEY, next);
-    return updated;
+      const updated: Habit = { id: habits[index].id, createdAt: habits[index].createdAt, ...changes };
+      const next = [...habits];
+      next[index] = updated;
+      await this.storage.set(HABITS_KEY, next);
+      return updated;
+    });
   }
 
   /** Removes a habit together with all of its recorded entries. */
   async deleteHabit(id: string): Promise<void> {
     await this.ensureReady();
-    const habits = await this.getHabits();
-    await this.storage.set(
-      HABITS_KEY,
-      habits.filter((habit) => habit.id !== id),
-    );
+    return this.writeQueue.run(async () => {
+      const habits = await this.getHabits();
+      await this.storage.set(
+        HABITS_KEY,
+        habits.filter((habit) => habit.id !== id),
+      );
 
-    const entries = await this.getAllEntries();
-    await this.storage.set(
-      ENTRIES_KEY,
-      entries.filter((entry) => entry.habitId !== id),
-    );
+      const entries = await this.getAllEntries();
+      await this.storage.set(
+        ENTRIES_KEY,
+        entries.filter((entry) => entry.habitId !== id),
+      );
+    });
   }
 
   /** The entry for a habit on a given day, if one was recorded. */
@@ -87,13 +105,15 @@ export class HabitStorageService {
   /** Records (or overwrites) the value for a habit on a given day. */
   async setEntry(habitId: string, date: string, value: number): Promise<HabitEntry> {
     await this.ensureReady();
-    const entries = await this.getAllEntries();
-    const existing = entries.find((entry) => entry.habitId === habitId && entry.date === date);
-    const entry: HabitEntry = existing ? { ...existing, value } : { id: crypto.randomUUID(), habitId, date, value };
+    return this.writeQueue.run(async () => {
+      const entries = await this.getAllEntries();
+      const existing = entries.find((entry) => entry.habitId === habitId && entry.date === date);
+      const entry: HabitEntry = existing ? { ...existing, value } : { id: crypto.randomUUID(), habitId, date, value };
 
-    const next = existing ? entries.map((e) => (e.id === entry.id ? entry : e)) : [...entries, entry];
-    await this.storage.set(ENTRIES_KEY, next);
-    return entry;
+      const next = existing ? entries.map((e) => (e.id === entry.id ? entry : e)) : [...entries, entry];
+      await this.storage.set(ENTRIES_KEY, next);
+      return entry;
+    });
   }
 
   /** All recorded entries for one habit, across every day. */

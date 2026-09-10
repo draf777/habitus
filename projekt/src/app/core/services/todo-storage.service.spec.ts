@@ -104,6 +104,30 @@ describe('TodoStorageService', () => {
     expect(grouped.get('2026-09-10')).toEqual([third]);
   });
 
+  it('keeps every add when several todos are added concurrently', async () => {
+    // Weder awaited noch nacheinander — sonst würde der zweite Aufruf mit
+    // einer veralteten Kopie der Liste schreiben und den ersten überschreiben.
+    const [first, second, third] = await Promise.all([
+      service.addTodo({ text: 'Einkaufen', date: '2026-09-04' }),
+      service.addTodo({ text: 'Mails beantworten', date: '2026-09-04' }),
+      service.addTodo({ text: 'Steuererklärung', date: '2026-09-04' }),
+    ]);
+
+    const todos = await service.getTodos();
+    expect(todos.map((todo) => todo.id).sort()).toEqual([first.id, second.id, third.id].sort());
+  });
+
+  it('applies both changes when done and date are updated concurrently for different todos', async () => {
+    const first = await service.addTodo({ text: 'Einkaufen', date: '2026-09-04' });
+    const second = await service.addTodo({ text: 'Steuererklärung', date: '2026-09-01' });
+
+    await Promise.all([service.setDone(first.id, true), service.setDate(second.id, '2026-09-10')]);
+
+    const todos = await service.getTodos();
+    expect(todos.find((todo) => todo.id === first.id)?.done).toBe(true);
+    expect(todos.find((todo) => todo.id === second.id)?.date).toBe('2026-09-10');
+  });
+
   it('assigns each new todo a later order than the previous one', async () => {
     const first = await service.addTodo({ text: 'Einkaufen', date: '2026-09-04' });
     const second = await service.addTodo({ text: 'Mails beantworten', date: '2026-09-04' });

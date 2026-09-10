@@ -33,7 +33,7 @@
       </ion-item>
       @if (isEditing()) {
         <ion-item lines="inset">
-          <ion-note class="ion-text-wrap locked-note">Die Häufigkeit kann nachträglich nicht mehr geändert werden.</ion-note>
+          <ion-note class="ion-text-wrap caution-note">Bestehende Einträge werden beim Ändern nicht automatisch angepasst.</ion-note>
         </ion-item>
       }
 
@@ -55,7 +55,7 @@
         }
         @if (isEditing()) {
           <ion-item lines="inset">
-            <ion-note class="ion-text-wrap locked-note">Der Typ kann nachträglich nicht mehr geändert werden.</ion-note>
+            <ion-note class="ion-text-wrap caution-note">Bestehende Einträge werden beim Ändern nicht automatisch angepasst.</ion-note>
           </ion-item>
         }
       } @else {
