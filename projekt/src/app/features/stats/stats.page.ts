@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import {
   IonContent,
   IonHeader,
+  IonIcon,
   IonItem,
   IonList,
   IonSelect,
@@ -11,6 +12,8 @@ import {
   ViewWillEnter,
 } from '@ionic/angular';
 import { ChartConfiguration, ChartData } from 'chart.js';
+import { addIcons } from 'ionicons';
+import { flame } from 'ionicons/icons';
 import { BaseChartDirective } from 'ng2-charts';
 
 import { HabitStorageService } from '../../core/services/habit-storage.service';
@@ -51,6 +54,7 @@ interface ThemeColors {
     IonContent,
     IonList,
     IonItem,
+    IonIcon,
     IonSelect,
     IonSelectOption,
     BaseChartDirective,
@@ -73,6 +77,9 @@ export class StatsPage implements ViewWillEnter {
 
   /** How many of the last 7 days a boolean habit was done. */
   readonly doneDays = computed(() => this.weekStats()?.days.filter((day) => day.value >= 1).length ?? 0);
+
+  /** Consecutive days the selected habit has been kept up, ending today (or yesterday if today isn't done yet). */
+  readonly streak = computed(() => this.weekStats()?.streak ?? 0);
 
   private readonly selectedHabit = computed(
     () => this.habits().find((habit) => habit.id === this.selectedHabitId()) ?? null,
@@ -138,6 +145,7 @@ export class StatsPage implements ViewWillEnter {
   });
 
   constructor() {
+    addIcons({ flame });
     void this.reload();
   }
 

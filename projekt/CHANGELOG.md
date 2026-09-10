@@ -12,6 +12,13 @@ Aktuelle Version.
 - StatsService für Aggregationslogik inkl. Ja/Nein-Habits
 - Charts folgen aktivem Farbschema/Theme
 - Unit-Tests für StatsService
+- App startet erstmalig mit zwei Beispiel-Habits (inkl. realistisch gefüllter letzter Woche samt laufendem Streak) und zwei Beispiel-Todos
+- "Über" > "Daten": Demo-Daten lassen sich mit einem Klick vollständig löschen, ohne eigene Daten zu beeinflussen
+- Statistik zeigt den aktuellen Streak (Tage am Stück) pro Habit
+
+### Fixed
+
+- "Statistik", "Heute" und "Todos" zeigten teils veraltete Daten, wenn Habits/Todos auf einem anderen Tab geändert wurden, solange man nicht neu geladen hat
 
 ## [0.3.1] - 2026-09-04
 

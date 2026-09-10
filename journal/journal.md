@@ -39,4 +39,9 @@
 - Entscheidung Chart-Library: ng2-charts/Chart.js statt ngx-charts oder ApexCharts, weil aktiv gepflegt, standalone-fähig und Farben sich sauber an die eigenen Theme-Variablen binden lassen (wichtig für 2 Farbschemen × Hell/Dunkel).
 - Ja/Nein-Habits werden in der Statistik als "erledigt an X von 7 Tagen" gezählt.
 - Unit-Tests für StatsService (inkl. Randfälle ohne Einträge) ergänzt.
+- Beim ersten Start werden jetzt automatisch zwei Beispiel-Habits (eine bereits mit gefüllter letzter Woche, damit "Statistik" nicht leer ist) und zwei Beispiel-Todos angelegt, statt dass die App komplett leer startet.
+- Unter "Über" > "Daten" lassen sich diese Demo-Daten mit einem Klick wieder vollständig löschen; getrackt wird das über die tatsächlich angelegten IDs, nicht über Namen, damit eigene, später angelegte Daten nie versehentlich mitgelöscht werden und die Demo-Daten nach dem Löschen auch nicht erneut erscheinen.
+- Beim Testen im Browser (nicht nur mit Unit-Tests) aufgefallen: "Statistik" (und potenziell "Heute"/"Todos") zeigten veraltete Daten, wenn man Habits/Todos auf einem anderen Tab änderte, weil Ionic die Tab-Seiten im Hintergrund am Leben hält statt sie neu zu erzeugen. Mit `ionViewWillEnter` auf allen drei Seiten behoben.
+- Statistik zeigt jetzt zusätzlich den aktuellen Streak (Tage am Stück) pro Habit, als Badge über dem Diagramm. Der Streak zählt rückwärts ab heute, bricht aber nicht sofort ab, wenn der heutige Eintrag noch fehlt — erst ein tatsächlich verpasster Tag beendet ihn.
+- Beim Feintuning der Demo-Daten (letzte 3 Tage erledigt, davor eine Lücke, davor nochmal ein Tag) einen Bug im Streak gefunden: die Berechnung brach an `habit.createdAt` ab, weil das Demo-Habit "heute" angelegt wird, die Einträge aber rückdatiert sind. Da echte Habits über die UI ohnehin nie rückdatierte Einträge bekommen können, die Grenze ersatzlos entfernt statt die Demo-Daten künstlich anzupassen.
 - v0.4.0 getaggt, live deployed.

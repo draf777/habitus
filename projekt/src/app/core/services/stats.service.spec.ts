@@ -107,4 +107,69 @@ describe('StatsService', () => {
 
     expect(stats.hasEntries).toBe(false);
   });
+
+  describe('streak', () => {
+    it('counts consecutive done days ending today', async () => {
+      storage.getEntriesForHabit.mockResolvedValue([
+        { id: 'e1', habitId: 'meditation', date: '2026-09-08', value: 1 },
+        { id: 'e2', habitId: 'meditation', date: '2026-09-09', value: 1 },
+        { id: 'e3', habitId: 'meditation', date: '2026-09-10', value: 1 },
+      ]);
+
+      const stats = await service.getWeekStats(meditationHabit, referenceDate);
+
+      expect(stats.streak).toBe(3);
+    });
+
+    it('does not break the streak when today has not been done yet, counting from yesterday instead', async () => {
+      storage.getEntriesForHabit.mockResolvedValue([
+        { id: 'e1', habitId: 'meditation', date: '2026-09-08', value: 1 },
+        { id: 'e2', habitId: 'meditation', date: '2026-09-09', value: 1 },
+        // kein Eintrag für 2026-09-10 (heute)
+      ]);
+
+      const stats = await service.getWeekStats(meditationHabit, referenceDate);
+
+      expect(stats.streak).toBe(2);
+    });
+
+    it('is 0 when today is undone and yesterday was also missed', async () => {
+      storage.getEntriesForHabit.mockResolvedValue([{ id: 'e1', habitId: 'meditation', date: '2026-09-07', value: 1 }]);
+
+      const stats = await service.getWeekStats(meditationHabit, referenceDate);
+
+      expect(stats.streak).toBe(0);
+    });
+
+    it('counts a streak longer than the 7-day chart window', async () => {
+      storage.getEntriesForHabit.mockResolvedValue([
+        { id: 'e1', habitId: 'meditation', date: '2026-09-01', value: 1 },
+        { id: 'e2', habitId: 'meditation', date: '2026-09-02', value: 1 },
+        { id: 'e3', habitId: 'meditation', date: '2026-09-03', value: 1 },
+        { id: 'e4', habitId: 'meditation', date: '2026-09-04', value: 1 },
+        { id: 'e5', habitId: 'meditation', date: '2026-09-05', value: 1 },
+        { id: 'e6', habitId: 'meditation', date: '2026-09-06', value: 1 },
+        { id: 'e7', habitId: 'meditation', date: '2026-09-07', value: 1 },
+        { id: 'e8', habitId: 'meditation', date: '2026-09-08', value: 1 },
+        { id: 'e9', habitId: 'meditation', date: '2026-09-09', value: 1 },
+        { id: 'e10', habitId: 'meditation', date: '2026-09-10', value: 1 },
+      ]);
+
+      const stats = await service.getWeekStats(meditationHabit, referenceDate);
+
+      expect(stats.streak).toBe(10);
+    });
+
+    it('works for numeric habits based on reaching the goal', async () => {
+      storage.getEntriesForHabit.mockResolvedValue([
+        { id: 'e1', habitId: 'lesen', date: '2026-09-08', value: 25 },
+        { id: 'e2', habitId: 'lesen', date: '2026-09-09', value: 20 },
+        { id: 'e3', habitId: 'lesen', date: '2026-09-10', value: 15 }, // heute unter dem Ziel
+      ]);
+
+      const stats = await service.getWeekStats(readingHabit, referenceDate);
+
+      expect(stats.streak).toBe(2);
+    });
+  });
 });

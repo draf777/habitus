@@ -15,6 +15,7 @@ import {
   IonTitle,
   IonToolbar,
   ToastController,
+  ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { addOutline } from 'ionicons/icons';
@@ -35,6 +36,11 @@ type FormMode = 'new' | Habit | null;
 /**
  * "Heute" — today's habits with their input for today's value, backed by
  * `HabitStorageService`. Also where habits are created and edited.
+ *
+ * Habits can also be deleted from another tab (clearing demo data on
+ * "Über"), and Ionic keeps this page's component instance alive across tab
+ * switches instead of recreating it — so it reloads on `ionViewWillEnter`,
+ * not just once in the constructor.
  */
 @Component({
   selector: 'app-today',
@@ -59,7 +65,7 @@ type FormMode = 'new' | Habit | null;
     NewHabitFormComponent,
   ],
 })
-export class TodayPage {
+export class TodayPage implements ViewWillEnter {
   private readonly storage = inject(HabitStorageService);
   private readonly alertCtrl = inject(AlertController);
   private readonly toastCtrl = inject(ToastController);
@@ -87,6 +93,11 @@ export class TodayPage {
 
   constructor() {
     addIcons({ addOutline });
+    void this.reload();
+  }
+
+  /** Reloads whenever this (cached) page becomes active again, e.g. after clearing demo data on "Über". */
+  ionViewWillEnter(): void {
     void this.reload();
   }
 

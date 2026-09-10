@@ -14,8 +14,8 @@ function flushPromises(): Promise<void> {
 
 const WEEK_DATES = ['2026-09-04', '2026-09-05', '2026-09-06', '2026-09-07', '2026-09-08', '2026-09-09', '2026-09-10'];
 
-function weekStatsWithValues(habit: Habit, values: number[], hasEntries = true): HabitWeekStats {
-  return { habit, days: WEEK_DATES.map((date, i) => ({ date, value: values[i] })), hasEntries };
+function weekStatsWithValues(habit: Habit, values: number[], hasEntries = true, streak = 0): HabitWeekStats {
+  return { habit, days: WEEK_DATES.map((date, i) => ({ date, value: values[i] })), hasEntries, streak };
 }
 
 describe('StatsPage', () => {
@@ -83,6 +83,38 @@ describe('StatsPage', () => {
     expect(fixture.componentInstance.doneDays()).toBe(3);
   });
 
+  it('exposes the streak from the service and shows it as a badge', async () => {
+    statsService.getWeekStats.mockResolvedValue(weekStatsWithValues(meditation, [0, 1, 0, 1, 0, 0, 1], true, 4));
+    fixture = TestBed.createComponent(StatsPage);
+    fixture.detectChanges();
+    await flushPromises();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.streak()).toBe(4);
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('4 Tage am Stück');
+  });
+
+  it('shows the singular "Tag" for a streak of exactly one day', async () => {
+    statsService.getWeekStats.mockResolvedValue(weekStatsWithValues(meditation, [0, 0, 0, 0, 0, 0, 1], true, 1));
+    fixture = TestBed.createComponent(StatsPage);
+    fixture.detectChanges();
+    await flushPromises();
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('1 Tag am Stück');
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('1 Tage am Stück');
+  });
+
+  it('shows no streak badge when the streak is 0', async () => {
+    statsService.getWeekStats.mockResolvedValue(weekStatsWithValues(meditation, [0, 0, 0, 0, 0, 0, 0], true, 0));
+    fixture = TestBed.createComponent(StatsPage);
+    fixture.detectChanges();
+    await flushPromises();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.streak-badge')).toBeNull();
+  });
+
   it('shows the empty state when the selected habit has no entries yet', async () => {
     statsService.getWeekStats.mockResolvedValue(weekStatsWithValues(meditation, [0, 0, 0, 0, 0, 0, 0], false));
     fixture = TestBed.createComponent(StatsPage);
@@ -106,5 +138,38 @@ describe('StatsPage', () => {
     expect(statsService.getWeekStats).not.toHaveBeenCalled();
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Noch keine Habits angelegt.');
+  });
+
+  it('reloads when the page becomes active again (e.g. after a habit was added on another tab)', async () => {
+    await flushPromises();
+    habitStorage.getHabits.mockResolvedValue([meditation, reading]);
+    statsService.getWeekStats.mockResolvedValue(weekStatsWithValues(reading, [0, 5, 0, 0, 0, 0, 0]));
+
+    fixture.componentInstance.ionViewWillEnter();
+    await flushPromises();
+
+    expect(fixture.componentInstance.habits()).toEqual([meditation, reading]);
+  });
+
+  it('keeps the current selection across a reload if the habit still exists', async () => {
+    await flushPromises();
+    await fixture.componentInstance.onHabitChange('lesen');
+    statsService.getWeekStats.mockResolvedValue(weekStatsWithValues(reading, [0, 5, 0, 0, 0, 0, 0]));
+
+    fixture.componentInstance.ionViewWillEnter();
+    await flushPromises();
+
+    expect(fixture.componentInstance.selectedHabitId()).toBe('lesen');
+  });
+
+  it('falls back to the first habit if the selected one was deleted elsewhere', async () => {
+    await flushPromises();
+    await fixture.componentInstance.onHabitChange('lesen');
+    habitStorage.getHabits.mockResolvedValue([meditation]);
+
+    fixture.componentInstance.ionViewWillEnter();
+    await flushPromises();
+
+    expect(fixture.componentInstance.selectedHabitId()).toBe('meditation');
   });
 });

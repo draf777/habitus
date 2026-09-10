@@ -3,6 +3,7 @@ import { IonApp, IonRouterOutlet, ToastController } from '@ionic/angular';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { filter } from 'rxjs';
 
+import { DemoDataService } from './core/services/demo-data.service';
 import { SettingsService } from './core/services/settings.service';
 
 @Component({
@@ -16,6 +17,7 @@ export class AppComponent {
 
   constructor() {
     void inject(SettingsService).load();
+    void inject(DemoDataService).seedIfNeeded();
     this.watchForAppUpdates();
   }
   private watchForAppUpdates(): void {

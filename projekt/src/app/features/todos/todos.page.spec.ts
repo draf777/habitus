@@ -115,4 +115,14 @@ describe('TodosPage', () => {
     expect(storage.deleteTodo).toHaveBeenCalledWith('a');
     expect(fixture.componentInstance.todos()).toEqual([doneTodo]);
   });
+
+  it('reloads when the page becomes active again (e.g. after a todo was deleted on another tab)', async () => {
+    await flushPromises();
+    storage.getTodosForDate.mockResolvedValue([doneTodo]);
+
+    fixture.componentInstance.ionViewWillEnter();
+    await flushPromises();
+
+    expect(fixture.componentInstance.todos()).toEqual([doneTodo]);
+  });
 });

@@ -204,4 +204,14 @@ describe('TodayPage', () => {
 
     expect(fixture.componentInstance.weeklyProgressFor(habit)).toBeUndefined();
   });
+
+  it('reloads when the page becomes active again (e.g. after a habit was deleted on another tab)', async () => {
+    await flushPromises();
+    storage.getHabits.mockResolvedValue([]);
+
+    fixture.componentInstance.ionViewWillEnter();
+    await flushPromises();
+
+    expect(fixture.componentInstance.habits()).toEqual([]);
+  });
 });

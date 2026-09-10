@@ -5,6 +5,7 @@ import { SwUpdate, VersionEvent } from '@angular/service-worker';
 import { Subject } from 'rxjs';
 
 import { AppComponent } from './app.component';
+import { DemoDataService } from './core/services/demo-data.service';
 import { SettingsService } from './core/services/settings.service';
 
 describe('AppComponent', () => {
@@ -22,6 +23,7 @@ describe('AppComponent', () => {
       providers: [
         provideRouter([]),
         { provide: SettingsService, useValue: { load: () => Promise.resolve() } },
+        { provide: DemoDataService, useValue: { seedIfNeeded: () => Promise.resolve() } },
         { provide: SwUpdate, useValue: { isEnabled, versionUpdates } },
         { provide: ToastController, useValue: { create: toastCreate } },
       ],

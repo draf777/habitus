@@ -12,6 +12,7 @@ import {
   IonNote,
   IonTitle,
   IonToolbar,
+  ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { addOutline } from 'ionicons/icons';
@@ -25,6 +26,11 @@ import { TodoItemComponent } from '../../shared/components/todo-item/todo-item.c
  * "Todos" — one-off tasks for today, next to the recurring habits. Backed by
  * `TodoStorageService`; only today's tasks are shown, since there is
  * (currently) no UI to pick another day.
+ *
+ * Todos can also be deleted from another tab (clearing demo data on
+ * "Über"), and Ionic keeps this page's component instance alive across tab
+ * switches instead of recreating it — so it reloads on `ionViewWillEnter`,
+ * not just once in the constructor.
  */
 @Component({
   selector: 'app-todos',
@@ -47,7 +53,7 @@ import { TodoItemComponent } from '../../shared/components/todo-item/todo-item.c
     TodoItemComponent,
   ],
 })
-export class TodosPage {
+export class TodosPage implements ViewWillEnter {
   private readonly storage = inject(TodoStorageService);
   private readonly date = today();
 
@@ -63,6 +69,11 @@ export class TodosPage {
 
   constructor() {
     addIcons({ addOutline });
+    void this.reload();
+  }
+
+  /** Reloads whenever this (cached) page becomes active again, e.g. after clearing demo data on "Über". */
+  ionViewWillEnter(): void {
     void this.reload();
   }
 
