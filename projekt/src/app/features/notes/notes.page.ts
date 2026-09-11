@@ -20,6 +20,7 @@ import { addOutline } from 'ionicons/icons';
 
 import { NotesStorageService } from '../../core/services/notes-storage.service';
 import { Note } from '../../models/note.model';
+import { confirmDeleteNote } from '../../shared/confirm-delete-note.util';
 import { NoteEditorComponent } from '../../shared/components/note-editor/note-editor.component';
 import { NoteItemComponent } from '../../shared/components/note-item/note-item.component';
 
@@ -115,21 +116,11 @@ export class NotesPage implements ViewWillEnter {
 
   /** Asks for confirmation, then deletes the note if the user confirms. */
   async confirmDelete(note: Note): Promise<void> {
-    const alert = await this.alertCtrl.create({
-      header: 'Notiz löschen?',
-      message: `„${note.title}“ wird endgültig gelöscht.`,
-      buttons: [
-        { text: 'Abbrechen', role: 'cancel' },
-        { text: 'Löschen', role: 'destructive' },
-      ],
-    });
-    await alert.present();
-
-    const { role } = await alert.onDidDismiss();
-    if (role === 'destructive') {
-      await this.storage.deleteNote(note.id);
-      await this.reload();
+    if (!(await confirmDeleteNote(this.alertCtrl, note.title))) {
+      return;
     }
+    await this.storage.deleteNote(note.id);
+    await this.reload();
   }
 
   private async reload(): Promise<void> {

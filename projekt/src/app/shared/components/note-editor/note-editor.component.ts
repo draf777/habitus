@@ -6,6 +6,7 @@ import { pencilOutline, trashOutline } from 'ionicons/icons';
 import { formatIsoDate } from '../../../core/date.util';
 import { NotesStorageService } from '../../../core/services/notes-storage.service';
 import { Note } from '../../../models/note.model';
+import { confirmDeleteNote } from '../../confirm-delete-note.util';
 import { NoteContentPipe } from '../../pipes/note-content.pipe';
 
 /** Whether the editor shows the formatted, read-only content or the raw-text editing form. */
@@ -124,24 +125,10 @@ export class NoteEditorComponent implements OnInit {
   /** Asks for confirmation, then deletes the note and closes the sheet. */
   async confirmDelete(): Promise<void> {
     const id = this.noteId();
-    if (!id) {
+    if (!id || !(await confirmDeleteNote(this.alertCtrl, this.title()))) {
       return;
     }
-
-    const alert = await this.alertCtrl.create({
-      header: 'Notiz löschen?',
-      message: `„${this.title()}“ wird endgültig gelöscht.`,
-      buttons: [
-        { text: 'Abbrechen', role: 'cancel' },
-        { text: 'Löschen', role: 'destructive' },
-      ],
-    });
-    await alert.present();
-
-    const { role } = await alert.onDidDismiss();
-    if (role === 'destructive') {
-      await this.storage.deleteNote(id);
-      this.closeRequested.emit();
-    }
+    await this.storage.deleteNote(id);
+    this.closeRequested.emit();
   }
 }
