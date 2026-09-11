@@ -26,10 +26,10 @@ describe('TabsPage', () => {
     expect(buttons.length).toBe(TABS.length);
   });
 
-  it('labels the tabs Heute, Statistik, Todos and Über', () => {
+  it('labels the tabs Heute, Statistik, Todos, Notizen and Über', () => {
     const labels = Array.from<HTMLElement>(fixture.nativeElement.querySelectorAll('ion-tab-button ion-label')).map(
       (label) => label.textContent?.trim(),
     );
-    expect(labels).toEqual(['Heute', 'Statistik', 'Todos', 'Über']);
+    expect(labels).toEqual(['Heute', 'Statistik', 'Todos', 'Notizen', 'Über']);
   });
 });

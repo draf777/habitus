@@ -1,0 +1,43 @@
+<ng-template #rowContent>
+  <ion-label class="ion-text-wrap">
+    <h2>{{ note().title }}</h2>
+    <p>{{ updatedAtLabel() }}</p>
+    @if (preview()) {
+      <p>{{ preview() }}</p>
+    }
+  </ion-label>
+</ng-template>
+
+@if (isMobile()) {
+  <!-- Touch viewport: delete is a swipe action, keeping the row itself focused on opening the note. -->
+  <ion-item-sliding #slidingItem>
+    <ion-item lines="full" button="true" detail="true" (click)="open.emit()">
+      <ng-container [ngTemplateOutlet]="rowContent"></ng-container>
+    </ion-item>
+
+    <ion-item-options side="end">
+      <ion-item-option
+        color="danger"
+        (click)="onSwipeRemove(slidingItem)"
+        [attr.aria-label]="'Notiz ' + note().title + ' löschen'"
+      >
+        <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+      </ion-item-option>
+    </ion-item-options>
+  </ion-item-sliding>
+} @else {
+  <!-- Desktop (mouse): swiping isn't discoverable, so delete stays a plain visible button. -->
+  <ion-item lines="full" button="true" detail="true" (click)="open.emit()">
+    <ng-container [ngTemplateOutlet]="rowContent"></ng-container>
+
+    <ion-button
+      slot="end"
+      fill="clear"
+      color="medium"
+      (click)="remove.emit(); $event.stopPropagation()"
+      [attr.aria-label]="'Notiz ' + note().title + ' löschen'"
+    >
+      <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+    </ion-button>
+  </ion-item>
+}

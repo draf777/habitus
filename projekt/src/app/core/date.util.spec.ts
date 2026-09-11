@@ -1,8 +1,14 @@
-import { datesThisMonthUpTo, datesThisWeekUpTo, formatDate, lastDays, today } from './date.util';
+import { datesThisMonthUpTo, datesThisWeekUpTo, formatDate, formatIsoDate, lastDays, today } from './date.util';
 
 describe('formatDate', () => {
   it('formats in local time as YYYY-MM-DD, zero-padded', () => {
     expect(formatDate(new Date(2026, 0, 5))).toBe('2026-01-05');
+  });
+});
+
+describe('formatIsoDate', () => {
+  it('formats an ISO timestamp as a zero-padded day.month.year date', () => {
+    expect(formatIsoDate('2026-09-11T08:30:00.000Z')).toMatch(/^\d{2}\.\d{2}\.2026$/);
   });
 });
 

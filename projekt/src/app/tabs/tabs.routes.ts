@@ -25,6 +25,10 @@ export const routes: Routes = [
         loadComponent: () => import('../features/todos/todos.page').then((m) => m.TodosPage),
       },
       {
+        path: 'notizen',
+        loadComponent: () => import('../features/notes/notes.page').then((m) => m.NotesPage),
+      },
+      {
         path: 'ueber',
         loadComponent: () => import('../features/about/about.page').then((m) => m.AboutPage),
       },

@@ -1,11 +1,17 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { IonIcon, IonLabel, IonTabBar, IonTabButton, IonTabs } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { barChartOutline, checkboxOutline, informationCircleOutline, todayOutline } from 'ionicons/icons';
+import {
+  barChartOutline,
+  checkboxOutline,
+  documentTextOutline,
+  informationCircleOutline,
+  todayOutline,
+} from 'ionicons/icons';
 
 import { TABS } from './tabs.config';
 
-/** The tab bar that hosts the four main pages of the app. */
+/** The tab bar that hosts the five main pages of the app. */
 @Component({
   selector: 'app-tabs',
   templateUrl: 'tabs.page.html',
@@ -18,6 +24,6 @@ export class TabsPage {
   readonly tabs = TABS;
 
   constructor() {
-    addIcons({ todayOutline, barChartOutline, checkboxOutline, informationCircleOutline });
+    addIcons({ todayOutline, barChartOutline, checkboxOutline, documentTextOutline, informationCircleOutline });
   }
 }

@@ -1,0 +1,59 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      @if (mode() === 'edit') {
+        <ion-button (click)="onCancel()">Abbrechen</ion-button>
+      } @else {
+        <ion-button (click)="closeRequested.emit()">Fertig</ion-button>
+      }
+    </ion-buttons>
+    <ion-title>{{ isNew() ? 'Neue Notiz' : mode() === 'edit' ? 'Notiz bearbeiten' : title() }}</ion-title>
+    <ion-buttons slot="end">
+      @if (mode() === 'view') {
+        <ion-button (click)="startEditing()" aria-label="Notiz bearbeiten">
+          <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+        </ion-button>
+      } @else {
+        <ion-button [disabled]="!canSave()" (click)="onSave()">Speichern</ion-button>
+      }
+      @if (!isNew()) {
+        <ion-button (click)="confirmDelete()" aria-label="Notiz löschen">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-button>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (mode() === 'edit') {
+    <ion-item lines="full">
+      <ion-input
+        label="Titel"
+        labelPlacement="stacked"
+        [value]="title()"
+        (ionInput)="title.set($event.detail.value ?? '')"
+        required
+        minlength="1"
+        aria-label="Titel"
+      ></ion-input>
+    </ion-item>
+    <ion-item lines="none" class="content-item">
+      <ion-textarea
+        label="Inhalt"
+        labelPlacement="stacked"
+        [autoGrow]="true"
+        [value]="content()"
+        (ionInput)="content.set($event.detail.value ?? '')"
+        placeholder="Zeilen, die mit „- “ beginnen, werden beim Anzeigen als Liste dargestellt."
+        rows="8"
+        aria-label="Inhalt"
+      ></ion-textarea>
+    </ion-item>
+  } @else {
+    <div class="note-view ion-padding">
+      <p class="note-meta">Zuletzt geändert: {{ updatedAtLabel() }}</p>
+      <div class="note-content" [innerHTML]="content() | noteContent"></div>
+    </div>
+  }
+</ion-content>

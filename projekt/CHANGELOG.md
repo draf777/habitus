@@ -2,9 +2,17 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Neueste Version zuoberst.
 
-## [0.5.0] - 2026-09-10
+## [1.1.0] - 2026-09-11
 
-Aktuelle Version.
+Aktuelle Version. Bonus-Release nach der Pflichtabgabe (v1.0.0).
+
+### Added
+
+- Neuer Notizen-Tab: mehrere Notizen erstellen, bearbeiten, löschen, persistiert
+- Einfache Listen-Darstellung ("- "-Zeilen eingerückt) beim Anzeigen
+- Automatische Erkennung und Verlinkung von URLs im Text
+
+## [0.5.0] - 2026-09-10
 
 ### Added
 

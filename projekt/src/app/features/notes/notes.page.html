@@ -1,0 +1,45 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Notizen</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="createNote()" aria-label="Neue Notiz">
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Notizen</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <ion-spinner></ion-spinner>
+    </div>
+  } @else {
+    <ion-list [inset]="true">
+      @for (note of sortedNotes(); track note.id) {
+        <app-note-item [note]="note" (open)="openNote(note)" (remove)="confirmDelete(note)"></app-note-item>
+      } @empty {
+        <ion-item lines="none">
+          <ion-label class="ion-text-wrap">Noch keine Notizen. Leg deine erste über das Plus oben an.</ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  }
+</ion-content>
+
+<ion-modal
+  [isOpen]="noteModalMode() !== null"
+  [breakpoints]="[0, 0.5, 0.85, 1]"
+  [initialBreakpoint]="0.85"
+  (didDismiss)="onNoteModalDismissed()"
+>
+  <ng-template>
+    <app-note-editor [note]="editingNote()" (closeRequested)="noteModalMode.set(null)"></app-note-editor>
+  </ng-template>
+</ion-modal>

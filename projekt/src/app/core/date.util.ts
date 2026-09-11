@@ -36,6 +36,11 @@ export function datesThisWeekUpTo(date: Date): string[] {
   return dates;
 }
 
+/** Formats an ISO timestamp as a human-readable date, e.g. "11.09.2026". */
+export function formatIsoDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
 /** "YYYY-MM-DD" dates from the 1st of `date`'s calendar month through `date`, inclusive. */
 export function datesThisMonthUpTo(date: Date): string[] {
   const firstOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);

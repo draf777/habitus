@@ -18,6 +18,7 @@ export const TABS: readonly TabDefinition[] = [
   { path: 'heute', label: 'Heute', icon: 'today-outline' },
   { path: 'statistik', label: 'Statistik', icon: 'bar-chart-outline' },
   { path: 'todos', label: 'Todos', icon: 'checkbox-outline' },
+  { path: 'notizen', label: 'Notizen', icon: 'document-text-outline' },
   { path: 'ueber', label: 'Über', icon: 'information-circle-outline' },
 ];
 
