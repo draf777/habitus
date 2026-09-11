@@ -8,6 +8,13 @@ Habitus
 
 Habit-Tracker mit Todo-Liste und Notizen — dranbleiben, ohne Account und ohne Ablenkung.
 
+## Screenshots
+
+| Heute | Statistik | Todos | Notizen | Über |
+| --- | --- | --- | --- | --- |
+| <img src="../docs/heute.png" width="220" alt="Heute: Habits abhaken"> | <img src="../docs/statistik.png" width="220" alt="Statistik: Wochendiagramm mit Streak"> | <img src="../docs/todos.png" width="220" alt="Todos: Aufgaben nach Heute/Früher/Erledigt"> | <img src="../docs/notizen.png" width="220" alt="Notizen: Liste mit Beispielnotiz"> | <img src="../docs/ueber.png" width="220" alt="Über: Projektbeschreibung und Status"> |
+| Habits abhaken | Streak & Diagramm | Aufgaben verwalten | Freie Notizen | Projekt & Daten |
+
 ## Beschreibung
 
 Habitus hilft dir, Gewohnheiten durchzuziehen. Du legst fest, was du regelmässig

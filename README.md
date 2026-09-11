@@ -1,16 +1,14 @@
 # Habitus
 
-Habitus ist ein Habit-Tracker mit integrierter Todo-Liste: Du legst die Gewohnheiten fest, die du regelmässig durchziehen willst, hakst sie täglich ab und siehst auf einen Blick, wie gut deine Woche läuft — dazu eine einfache Liste für einmalige Aufgaben. Die App läuft als PWA im Browser, ist installierbar und braucht weder Account noch Backend.
+Habitus ist ein Habit-Tracker mit integrierter Todo-Liste und Notizen: Du legst die Gewohnheiten fest, die du regelmässig durchziehen willst, hakst sie täglich ab und siehst auf einen Blick, wie gut deine Woche oder dein Monat läuft — dazu eine einfache Liste für einmalige Aufgaben und frei formulierbare Notizen. Die App läuft als PWA im Browser, ist installierbar und braucht weder Account noch Backend.
 
-![TODO: Screenshot](docs/screenshot.png)
+![Heute](docs/heute.png)
 
-> TODO: Screenshot der App einfügen (`docs/screenshot.png`).
+Weitere Screenshots: [store/beschreibung.md](store/beschreibung.md).
 
 ## Status
 
-Aktuelle Version: **v0.1.0** — lauffähiges Grundgerüst mit vier Tabs (Heute, Statistik, Todos, Über), PWA-Konfiguration und automatischem Deploy.
-
-Was noch **nicht** funktioniert: "Heute", "Statistik" und "Todos" zeigen fest eingebaute Demo-Daten aus `projekt/src/app/core/data/`. Habits und Aufgaben lassen sich nicht abhaken, anlegen, bearbeiten oder löschen — die Checkboxen sind bewusst deaktiviert, und es gibt keine Persistenz. Jede dieser drei Seiten weist im UI selbst mit einem Hinweis-Banner darauf hin. Funktionsfähig sind bisher die Navigation, das Layout, die Über-Seite und die PWA-Installation.
+Aktuelle Version: **v1.0.0** — alle fünf Tabs (Heute, Statistik, Todos, Notizen, Über) funktionieren mit echten, lokal gespeicherten Daten: Habits, Aufgaben und Notizen lassen sich frei anlegen, bearbeiten, abhaken/erledigen und löschen, PWA-Installation und automatisches Deploy inklusive.
 
 Live: TODO: URL des Deployments eintragen.
 
