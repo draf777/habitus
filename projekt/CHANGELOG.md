@@ -2,15 +2,17 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Neueste Version zuoberst.
 
-## [1.1.0] - 2026-09-11
+## [1.0.0] - 2026-09-11
 
-Aktuelle Version. Bonus-Release nach der Pflichtabgabe (v1.0.0).
+Aktuelle Version.
 
 ### Added
 
 - Neuer Notizen-Tab: mehrere Notizen erstellen, bearbeiten, löschen, persistiert
 - Einfache Listen-Darstellung ("- "-Zeilen eingerückt) beim Anzeigen
 - Automatische Erkennung und Verlinkung von URLs im Text
+- Notiz ansehen/bearbeiten als Bottom-Sheet über der Liste statt als eigene Seite
+- Erststart legt jetzt zusätzlich zu den Beispiel-Habits/-Todos auch eine Beispielnotiz an (dient zugleich als kurze Anleitung zur Listen-/Link-Darstellung), unter "Über" > "Daten" ebenfalls mit löschbar
 
 ## [0.5.0] - 2026-09-10
 

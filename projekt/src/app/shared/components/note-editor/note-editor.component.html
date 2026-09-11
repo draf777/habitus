@@ -10,16 +10,16 @@
     <ion-title>{{ isNew() ? 'Neue Notiz' : mode() === 'edit' ? 'Notiz bearbeiten' : title() }}</ion-title>
     <ion-buttons slot="end">
       @if (mode() === 'view') {
+        @if (!isNew()) {
+          <ion-button (click)="confirmDelete()" aria-label="Notiz löschen">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-button>
+        }
         <ion-button (click)="startEditing()" aria-label="Notiz bearbeiten">
           <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
         </ion-button>
       } @else {
         <ion-button [disabled]="!canSave()" (click)="onSave()">Speichern</ion-button>
-      }
-      @if (!isNew()) {
-        <ion-button (click)="confirmDelete()" aria-label="Notiz löschen">
-          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-        </ion-button>
       }
     </ion-buttons>
   </ion-toolbar>

@@ -3,37 +3,43 @@ import { Storage } from '@ionic/storage-angular';
 
 import { lastDays, today } from '../date.util';
 import { HabitStorageService } from './habit-storage.service';
+import { NotesStorageService } from './notes-storage.service';
 import { TodoStorageService } from './todo-storage.service';
 
 const SEEDED_KEY = 'demoDataSeeded';
 const TRACKED_IDS_KEY = 'demoDataIds';
 
-/** Ids of the habits/todos `seedIfNeeded` created, so `clearDemoData` can tell them apart from the user's own data. */
+/** Ids of the habits/todos/notes `seedIfNeeded` created, so `clearDemoData` can tell them apart from the user's own data. */
 interface DemoDataIds {
   readonly habitIds: readonly string[];
   readonly todoIds: readonly string[];
+  readonly noteIds: readonly string[];
 }
 
-const EMPTY_IDS: DemoDataIds = { habitIds: [], todoIds: [] };
+const EMPTY_IDS: DemoDataIds = { habitIds: [], todoIds: [], noteIds: [] };
 
 /**
  * Seeds a first-time install with two example habits (a week of history
- * already filled in, so "Statistik" isn't empty) and four example todos —
- * two for today, plus one still-open and one done task left over from
- * earlier in the week, so "Todos" shows all three of its sections (Heute,
- * frühere offene Todos, Erledigt) right away instead of starting blank.
+ * already filled in, so "Statistik" isn't empty), four example todos — two
+ * for today, plus one still-open and one done task left over from earlier in
+ * the week, so "Todos" shows all three of its sections (Heute, frühere
+ * offene Todos, Erledigt) right away instead of starting blank — and one
+ * example note that doubles as a quick how-to for its own formatting (list
+ * lines, links), so "Notizen" doesn't start on a bare empty state either.
  *
  * Seeding runs at most once, ever — tracked via a persisted flag rather than
- * by checking whether habits/todos exist, so deleting everything by hand
- * doesn't bring the demo data back. The seeded ids are tracked separately so
- * `clearDemoData` removes exactly those (whether or not the user has since
- * edited them) without ever touching anything the user added themselves.
+ * by checking whether habits/todos/notes exist, so deleting everything by
+ * hand doesn't bring the demo data back. The seeded ids are tracked
+ * separately so `clearDemoData` removes exactly those (whether or not the
+ * user has since edited them) without ever touching anything the user added
+ * themselves.
  */
 @Injectable({ providedIn: 'root' })
 export class DemoDataService {
   private readonly storage = inject(Storage);
   private readonly habitStorage = inject(HabitStorageService);
   private readonly todoStorage = inject(TodoStorageService);
+  private readonly notesStorage = inject(NotesStorageService);
   private ready: Promise<unknown> | null = null;
 
   private ensureReady(): Promise<unknown> {
@@ -43,7 +49,7 @@ export class DemoDataService {
     return this.ready;
   }
 
-  /** Creates the demo habits/entries/todos, but only the very first time the app runs. */
+  /** Creates the demo habits/entries/todos/note, but only the very first time the app runs. */
   async seedIfNeeded(): Promise<void> {
     await this.ensureReady();
     const alreadySeeded = (await this.storage.get(SEEDED_KEY)) as boolean | null;
@@ -95,19 +101,30 @@ export class DemoDataService {
     const bill = await this.todoStorage.addTodo({ text: 'Stromrechnung bezahlt', date: dates[3] });
     await this.todoStorage.setDone(bill.id, true);
 
+    const note = await this.notesStorage.addNote({
+      title: 'Beispielnotiz',
+      content:
+        'Das ist eine Beispielnotiz — du kannst sie bearbeiten oder löschen.\n\n' +
+        'Zeilen, die mit „- “ beginnen, werden beim Anzeigen als Liste dargestellt:\n' +
+        '- Milch\n' +
+        '- Brot\n\n' +
+        'Links werden automatisch erkannt: https://ionicframework.com',
+    });
+
     await this.storage.set(TRACKED_IDS_KEY, {
       habitIds: [meditation.id, reading.id],
       todoIds: [shopping.id, mails.id, taxes.id, bill.id],
+      noteIds: [note.id],
     } satisfies DemoDataIds);
   }
 
-  /** Whether any of the seeded demo habits/todos still exist. */
+  /** Whether any of the seeded demo habits/todos/notes still exist. */
   async hasDemoData(): Promise<boolean> {
     const ids = await this.trackedIds();
-    return ids.habitIds.length > 0 || ids.todoIds.length > 0;
+    return ids.habitIds.length > 0 || ids.todoIds.length > 0 || ids.noteIds.length > 0;
   }
 
-  /** Deletes exactly the seeded demo habits (with their entries) and todos; never touches anything else. */
+  /** Deletes exactly the seeded demo habits (with their entries), todos and note; never touches anything else. */
   async clearDemoData(): Promise<void> {
     const ids = await this.trackedIds();
     for (const habitId of ids.habitIds) {
@@ -115,6 +132,9 @@ export class DemoDataService {
     }
     for (const todoId of ids.todoIds) {
       await this.todoStorage.deleteTodo(todoId);
+    }
+    for (const noteId of ids.noteIds) {
+      await this.notesStorage.deleteNote(noteId);
     }
     await this.storage.set(TRACKED_IDS_KEY, EMPTY_IDS);
   }

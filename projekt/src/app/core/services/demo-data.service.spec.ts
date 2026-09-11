@@ -3,6 +3,7 @@ import { Storage } from '@ionic/storage-angular';
 
 import { DemoDataService } from './demo-data.service';
 import { HabitStorageService } from './habit-storage.service';
+import { NotesStorageService } from './notes-storage.service';
 import { StatsService } from './stats.service';
 import { TodoStorageService } from './todo-storage.service';
 import { today } from '../date.util';
@@ -28,6 +29,7 @@ describe('DemoDataService', () => {
   let service: DemoDataService;
   let habitStorage: HabitStorageService;
   let todoStorage: TodoStorageService;
+  let notesStorage: NotesStorageService;
   let statsService: StatsService;
 
   beforeEach(() => {
@@ -36,6 +38,7 @@ describe('DemoDataService', () => {
         DemoDataService,
         HabitStorageService,
         TodoStorageService,
+        NotesStorageService,
         StatsService,
         { provide: Storage, useClass: FakeStorage },
       ],
@@ -43,16 +46,21 @@ describe('DemoDataService', () => {
     service = TestBed.inject(DemoDataService);
     habitStorage = TestBed.inject(HabitStorageService);
     todoStorage = TestBed.inject(TodoStorageService);
+    notesStorage = TestBed.inject(NotesStorageService);
     statsService = TestBed.inject(StatsService);
   });
 
-  it('seeds two habits and four todos on first run', async () => {
+  it('seeds two habits, four todos and one note on first run', async () => {
     await service.seedIfNeeded();
 
     const habits = await habitStorage.getHabits();
     const todos = await todoStorage.getTodos();
+    const notes = await notesStorage.getNotes();
     expect(habits.length).toBe(2);
     expect(todos.length).toBe(4);
+    expect(notes.length).toBe(1);
+    expect(notes[0].title).toBeTruthy();
+    expect(notes[0].content).toBeTruthy();
   });
 
   it('gives todos from all three "Todos" sections: today, still-open from earlier, and done', async () => {
@@ -98,6 +106,7 @@ describe('DemoDataService', () => {
 
     expect((await habitStorage.getHabits()).length).toBe(2);
     expect((await todoStorage.getTodos()).length).toBe(4);
+    expect((await notesStorage.getNotes()).length).toBe(1);
   });
 
   it('does not reseed even if the user deletes everything by hand', async () => {
@@ -108,11 +117,15 @@ describe('DemoDataService', () => {
     for (const todo of await todoStorage.getTodos()) {
       await todoStorage.deleteTodo(todo.id);
     }
+    for (const note of await notesStorage.getNotes()) {
+      await notesStorage.deleteNote(note.id);
+    }
 
     await service.seedIfNeeded();
 
     expect(await habitStorage.getHabits()).toEqual([]);
     expect(await todoStorage.getTodos()).toEqual([]);
+    expect(await notesStorage.getNotes()).toEqual([]);
   });
 
   it('reports no demo data before seeding', async () => {
@@ -125,15 +138,17 @@ describe('DemoDataService', () => {
     expect(await service.hasDemoData()).toBe(true);
   });
 
-  it('clears exactly the seeded habits and todos, leaving other data untouched', async () => {
+  it('clears exactly the seeded habits, todos and note, leaving other data untouched', async () => {
     await service.seedIfNeeded();
     const own = await habitStorage.addHabit({ name: 'Eigenes Habit', type: 'boolean' });
     const ownTodo = await todoStorage.addTodo({ text: 'Eigenes Todo', date: '2026-09-10' });
+    const ownNote = await notesStorage.addNote({ title: 'Eigene Notiz', content: 'x' });
 
     await service.clearDemoData();
 
     expect(await habitStorage.getHabits()).toEqual([own]);
     expect(await todoStorage.getTodos()).toEqual([ownTodo]);
+    expect(await notesStorage.getNotes()).toEqual([ownNote]);
     expect(await service.hasDemoData()).toBe(false);
   });
 
