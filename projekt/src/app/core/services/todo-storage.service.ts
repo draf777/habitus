@@ -1,34 +1,36 @@
 import { Injectable, inject } from '@angular/core';
-import { Storage } from '@ionic/storage-angular';
+import { Firestore } from '@angular/fire/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, setDoc } from 'firebase/firestore';
 
-import { AsyncWriteQueue } from '../async-write-queue.util';
+import { AuthService } from './auth.service';
 import { Todo } from '../../models/todo.model';
 
-const TODOS_KEY = 'todos';
-
 /**
- * Persists todos via Ionic Storage, as a single array under one key — see
- * `HabitStorageService` for why that's enough for this app's data size, and
- * `AsyncWriteQueue` for why every mutating method runs through `writeQueue`.
+ * Persists todos in Firestore, under `users/{uid}/todos` for the signed-in
+ * user — see `HabitStorageService` for why per-document writes replace the
+ * old Ionic-Storage array + write-queue approach.
  */
 @Injectable({ providedIn: 'root' })
 export class TodoStorageService {
-  private readonly storage = inject(Storage);
-  private readonly writeQueue = new AsyncWriteQueue();
-  private ready: Promise<unknown> | null = null;
+  private readonly firestore = inject(Firestore);
+  private readonly authService = inject(AuthService);
 
-  private ensureReady(): Promise<unknown> {
-    if (!this.ready) {
-      this.ready = this.storage.create();
+  private requireUid(): string {
+    const uid = this.authService.currentUser()?.uid;
+    if (!uid) {
+      throw new Error('TodoStorageService used while signed out');
     }
-    return this.ready;
+    return uid;
+  }
+
+  private todosPath(): string {
+    return `users/${this.requireUid()}/todos`;
   }
 
   /** All stored todos, in the order they were created. */
   async getTodos(): Promise<Todo[]> {
-    await this.ensureReady();
-    const todos = (await this.storage.get(TODOS_KEY)) as Todo[] | null;
-    return todos ?? [];
+    const snapshot = await getDocs(query(collection(this.firestore, this.todosPath()), orderBy('createdAt')));
+    return snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }) as Todo);
   }
 
   /** The stored todos for one day. */
@@ -54,19 +56,15 @@ export class TodoStorageService {
 
   /** Creates a new todo and persists it. */
   async addTodo(input: { text: string; date: string }): Promise<Todo> {
-    await this.ensureReady();
-    return this.writeQueue.run(async () => {
-      const todo: Todo = {
-        ...input,
-        id: crypto.randomUUID(),
-        done: false,
-        createdAt: new Date().toISOString(),
-        order: Date.now(),
-      };
-      const todos = await this.getTodos();
-      await this.storage.set(TODOS_KEY, [...todos, todo]);
-      return todo;
-    });
+    const data = {
+      ...input,
+      done: false,
+      createdAt: new Date().toISOString(),
+      order: Date.now(),
+    };
+    const ref = doc(collection(this.firestore, this.todosPath()));
+    await setDoc(ref, data);
+    return { id: ref.id, ...data };
   }
 
   /**
@@ -77,16 +75,9 @@ export class TodoStorageService {
    * sorted independently of each other.
    */
   async reorderTodos(orderedIds: readonly string[]): Promise<void> {
-    await this.ensureReady();
-    return this.writeQueue.run(async () => {
-      const positionById = new Map(orderedIds.map((id, index) => [id, index] as const));
-      const todos = await this.getTodos();
-      const next = todos.map((todo) => {
-        const order = positionById.get(todo.id);
-        return order == null ? todo : { ...todo, order };
-      });
-      await this.storage.set(TODOS_KEY, next);
-    });
+    await Promise.all(
+      orderedIds.map((id, index) => setDoc(doc(this.firestore, `${this.todosPath()}/${id}`), { order: index }, { merge: true })),
+    );
   }
 
   /** Marks a todo done or open again. */
@@ -101,30 +92,17 @@ export class TodoStorageService {
 
   /** Removes a todo. */
   async deleteTodo(id: string): Promise<void> {
-    await this.ensureReady();
-    return this.writeQueue.run(async () => {
-      const todos = await this.getTodos();
-      await this.storage.set(
-        TODOS_KEY,
-        todos.filter((todo) => todo.id !== id),
-      );
-    });
+    await deleteDoc(doc(this.firestore, `${this.todosPath()}/${id}`));
   }
 
   private async updateTodo(id: string, changes: Partial<Pick<Todo, 'done' | 'date'>>): Promise<Todo> {
-    await this.ensureReady();
-    return this.writeQueue.run(async () => {
-      const todos = await this.getTodos();
-      const index = todos.findIndex((todo) => todo.id === id);
-      if (index === -1) {
-        throw new Error(`Todo ${id} does not exist`);
-      }
+    const ref = doc(this.firestore, `${this.todosPath()}/${id}`);
+    const snapshot = await getDoc(ref);
+    if (!snapshot.exists()) {
+      throw new Error(`Todo ${id} does not exist`);
+    }
 
-      const updated: Todo = { ...todos[index], ...changes };
-      const next = [...todos];
-      next[index] = updated;
-      await this.storage.set(TODOS_KEY, next);
-      return updated;
-    });
+    await setDoc(ref, changes, { merge: true });
+    return { id, ...(snapshot.data() as Omit<Todo, 'id'>), ...changes };
   }
 }

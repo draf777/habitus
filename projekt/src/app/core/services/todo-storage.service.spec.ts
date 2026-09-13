@@ -1,31 +1,27 @@
 import { TestBed } from '@angular/core/testing';
-import { Storage } from '@ionic/storage-angular';
+import { Firestore } from '@angular/fire/firestore';
 
+import { AuthService } from './auth.service';
 import { TodoStorageService } from './todo-storage.service';
 
-/** In-memory stand-in for Ionic Storage, so tests don't need a real driver. */
-class FakeStorage {
-  private readonly store = new Map<string, unknown>();
+const firestoreState = vi.hoisted(() => ({ documents: new Map<string, Record<string, unknown>>() }));
 
-  async create(): Promise<this> {
-    return this;
-  }
-
-  async get(key: string): Promise<unknown> {
-    return this.store.get(key) ?? null;
-  }
-
-  async set(key: string, value: unknown): Promise<void> {
-    this.store.set(key, value);
-  }
-}
+vi.mock('firebase/firestore', async () => {
+  const { createFakeFirestoreModule } = await import('./testing/fake-firestore.util');
+  return createFakeFirestoreModule(firestoreState.documents);
+});
 
 describe('TodoStorageService', () => {
   let service: TodoStorageService;
 
   beforeEach(() => {
+    firestoreState.documents.clear();
     TestBed.configureTestingModule({
-      providers: [TodoStorageService, { provide: Storage, useClass: FakeStorage }],
+      providers: [
+        TodoStorageService,
+        { provide: Firestore, useValue: {} },
+        { provide: AuthService, useValue: { currentUser: () => ({ uid: 'test-uid' }) } },
+      ],
     });
     service = TestBed.inject(TodoStorageService);
   });
@@ -105,8 +101,6 @@ describe('TodoStorageService', () => {
   });
 
   it('keeps every add when several todos are added concurrently', async () => {
-    // Weder awaited noch nacheinander — sonst würde der zweite Aufruf mit
-    // einer veralteten Kopie der Liste schreiben und den ersten überschreiben.
     const [first, second, third] = await Promise.all([
       service.addTodo({ text: 'Einkaufen', date: '2026-09-04' }),
       service.addTodo({ text: 'Mails beantworten', date: '2026-09-04' }),

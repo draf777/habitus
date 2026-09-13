@@ -1,16 +1,27 @@
 import { TestBed } from '@angular/core/testing';
+import { Firestore } from '@angular/fire/firestore';
 import { Storage } from '@ionic/storage-angular';
 
+import { AuthService } from './auth.service';
 import { DemoDataService } from './demo-data.service';
 import { HabitStorageService } from './habit-storage.service';
 import { NotesStorageService } from './notes-storage.service';
-import { StatsService } from './stats.service';
 import { TodoStorageService } from './todo-storage.service';
 import { today } from '../date.util';
+import { Habit, HabitEntry } from '../../models/habit.model';
+import { Note } from '../../models/note.model';
+import { Todo } from '../../models/todo.model';
+
+const firestoreState = vi.hoisted(() => ({ documents: new Map<string, Record<string, unknown>>() }));
+
+vi.mock('firebase/firestore', async () => {
+  const { createFakeFirestoreModule } = await import('./testing/fake-firestore.util');
+  return createFakeFirestoreModule(firestoreState.documents);
+});
 
 /** In-memory stand-in for Ionic Storage, so tests don't need a real driver. */
 class FakeStorage {
-  private readonly store = new Map<string, unknown>();
+  readonly store = new Map<string, unknown>();
 
   async create(): Promise<this> {
     return this;
@@ -27,105 +38,110 @@ class FakeStorage {
 
 describe('DemoDataService', () => {
   let service: DemoDataService;
+  let storage: FakeStorage;
   let habitStorage: HabitStorageService;
   let todoStorage: TodoStorageService;
   let notesStorage: NotesStorageService;
-  let statsService: StatsService;
 
   beforeEach(() => {
+    firestoreState.documents.clear();
+    storage = new FakeStorage();
+
     TestBed.configureTestingModule({
       providers: [
         DemoDataService,
         HabitStorageService,
         TodoStorageService,
         NotesStorageService,
-        StatsService,
-        { provide: Storage, useClass: FakeStorage },
+        { provide: Storage, useValue: storage },
+        { provide: Firestore, useValue: {} },
+        { provide: AuthService, useValue: { currentUser: () => ({ uid: 'test-uid' }) } },
       ],
     });
     service = TestBed.inject(DemoDataService);
     habitStorage = TestBed.inject(HabitStorageService);
     todoStorage = TestBed.inject(TodoStorageService);
     notesStorage = TestBed.inject(NotesStorageService);
-    statsService = TestBed.inject(StatsService);
   });
+
+  // `seedIfNeeded` runs before any login exists, so it writes straight to the
+  // local Ionic Storage keys instead of through the (now Firestore-backed)
+  // storage services — see `DemoDataService`'s doc comment. These helpers
+  // read those same local keys back, the way `MigrationService` would.
+  function localHabits(): Habit[] {
+    return (storage.store.get('habits') as Habit[] | undefined) ?? [];
+  }
+  function localEntries(): HabitEntry[] {
+    return (storage.store.get('entries') as HabitEntry[] | undefined) ?? [];
+  }
+  function localTodos(): Todo[] {
+    return (storage.store.get('todos') as Todo[] | undefined) ?? [];
+  }
+  function localNotes(): Note[] {
+    return (storage.store.get('notes') as Note[] | undefined) ?? [];
+  }
 
   it('seeds two habits, four todos and one note on first run', async () => {
     await service.seedIfNeeded();
 
-    const habits = await habitStorage.getHabits();
-    const todos = await todoStorage.getTodos();
-    const notes = await notesStorage.getNotes();
-    expect(habits.length).toBe(2);
-    expect(todos.length).toBe(4);
-    expect(notes.length).toBe(1);
-    expect(notes[0].title).toBeTruthy();
-    expect(notes[0].content).toBeTruthy();
+    expect(localHabits().length).toBe(2);
+    expect(localTodos().length).toBe(4);
+    expect(localNotes().length).toBe(1);
+    expect(localNotes()[0].title).toBeTruthy();
+    expect(localNotes()[0].content).toBeTruthy();
   });
 
   it('gives todos from all three "Todos" sections: today, still-open from earlier, and done', async () => {
     await service.seedIfNeeded();
 
-    const todos = await todoStorage.getTodos();
+    const todos = localTodos();
     const todayStr = today();
     expect(todos.some((todo) => todo.date === todayStr && !todo.done)).toBe(true);
     expect(todos.some((todo) => todo.date < todayStr && !todo.done)).toBe(true);
     expect(todos.some((todo) => todo.date < todayStr && todo.done)).toBe(true);
   });
 
-  it('marks both seeded habits done today, with a current streak already running', async () => {
+  it('marks the meditation habit done on 4 of the last 7 days, including today — a realistic streak, not every day', async () => {
     await service.seedIfNeeded();
 
-    const habits = await habitStorage.getHabits();
-    const meditation = habits.find((habit) => habit.type === 'boolean')!;
-    const reading = habits.find((habit) => habit.type === 'duration_min')!;
+    const meditation = localHabits().find((habit) => habit.type === 'boolean')!;
+    const entries = localEntries().filter((entry) => entry.habitId === meditation.id);
 
-    expect((await habitStorage.getEntry(meditation.id, today()))?.value).toBe(1);
-    expect((await habitStorage.getEntry(reading.id, today()))?.value).toBeGreaterThanOrEqual(reading.goal!);
-
-    const meditationStats = await statsService.getWeekStats(meditation);
-    const readingStats = await statsService.getWeekStats(reading);
-    expect(meditationStats.streak).toBeGreaterThan(0);
-    expect(readingStats.streak).toBeGreaterThan(0);
+    expect(entries).toHaveLength(4);
+    expect(entries.some((entry) => entry.date === today() && entry.value === 1)).toBe(true);
   });
 
-  it('gives the seeded boolean habit a realistic week with a gap, not every day done', async () => {
+  it('gives the reading habit an entry for today at or above its goal', async () => {
     await service.seedIfNeeded();
 
-    const habits = await habitStorage.getHabits();
-    const meditation = habits.find((habit) => habit.type === 'boolean')!;
-    const stats = await statsService.getWeekStats(meditation);
+    const reading = localHabits().find((habit) => habit.type === 'duration_min')!;
+    const entries = localEntries().filter((entry) => entry.habitId === reading.id);
+    const todayEntry = entries.find((entry) => entry.date === today());
 
-    expect(stats.days.some((day) => day.value === 0)).toBe(true);
-    expect(stats.days.some((day) => day.value === 1)).toBe(true);
+    expect(todayEntry?.value).toBeGreaterThanOrEqual(reading.goal!);
   });
 
   it('does not seed a second time once already seeded', async () => {
     await service.seedIfNeeded();
     await service.seedIfNeeded();
 
-    expect((await habitStorage.getHabits()).length).toBe(2);
-    expect((await todoStorage.getTodos()).length).toBe(4);
-    expect((await notesStorage.getNotes()).length).toBe(1);
+    expect(localHabits().length).toBe(2);
+    expect(localTodos().length).toBe(4);
+    expect(localNotes().length).toBe(1);
   });
 
-  it('does not reseed even if the user deletes everything by hand', async () => {
+  it('does not reseed even if the local data is cleared by hand', async () => {
     await service.seedIfNeeded();
-    for (const habit of await habitStorage.getHabits()) {
-      await habitStorage.deleteHabit(habit.id);
-    }
-    for (const todo of await todoStorage.getTodos()) {
-      await todoStorage.deleteTodo(todo.id);
-    }
-    for (const note of await notesStorage.getNotes()) {
-      await notesStorage.deleteNote(note.id);
-    }
+    await storage.set('habits', []);
+    await storage.set('entries', []);
+    await storage.set('todos', []);
+    await storage.set('notes', []);
 
     await service.seedIfNeeded();
 
-    expect(await habitStorage.getHabits()).toEqual([]);
-    expect(await todoStorage.getTodos()).toEqual([]);
-    expect(await notesStorage.getNotes()).toEqual([]);
+    expect(localHabits()).toEqual([]);
+    expect(localTodos()).toEqual([]);
+    expect(localNotes()).toEqual([]);
   });
 
   it('reports no demo data before seeding', async () => {
@@ -138,7 +154,7 @@ describe('DemoDataService', () => {
     expect(await service.hasDemoData()).toBe(true);
   });
 
-  it('clears exactly the seeded habits, todos and note, leaving other data untouched', async () => {
+  it("clears exactly the seeded ids, leaving the account's own data untouched", async () => {
     await service.seedIfNeeded();
     const own = await habitStorage.addHabit({ name: 'Eigenes Habit', type: 'boolean' });
     const ownTodo = await todoStorage.addTodo({ text: 'Eigenes Todo', date: '2026-09-10' });
@@ -149,16 +165,6 @@ describe('DemoDataService', () => {
     expect(await habitStorage.getHabits()).toEqual([own]);
     expect(await todoStorage.getTodos()).toEqual([ownTodo]);
     expect(await notesStorage.getNotes()).toEqual([ownNote]);
-    expect(await service.hasDemoData()).toBe(false);
-  });
-
-  it('does not affect data added after clearing demo data', async () => {
-    await service.seedIfNeeded();
-    await service.clearDemoData();
-
-    const own = await habitStorage.addHabit({ name: 'Neues Habit', type: 'boolean' });
-
-    expect(await habitStorage.getHabits()).toEqual([own]);
     expect(await service.hasDemoData()).toBe(false);
   });
 

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   AlertController,
   IonContent,
@@ -16,6 +17,7 @@ import {
 } from '@ionic/angular';
 
 import { APP_INFO } from '../../core/app-info';
+import { AuthService } from '../../core/services/auth.service';
 import { DemoDataService } from '../../core/services/demo-data.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { ColorScheme, Theme } from '../../models/settings.model';
@@ -46,6 +48,8 @@ import { ColorScheme, Theme } from '../../models/settings.model';
 export class AboutPage implements ViewWillEnter {
   private readonly demoData = inject(DemoDataService);
   private readonly alertCtrl = inject(AlertController);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly info = APP_INFO;
   readonly settings = inject(SettingsService);
@@ -91,5 +95,11 @@ export class AboutPage implements ViewWillEnter {
 
   private async reloadHasDemoData(): Promise<void> {
     this.hasDemoData.set(await this.demoData.hasDemoData());
+  }
+
+  /** Signs the current user out and returns to the login page. */
+  async logout(): Promise<void> {
+    await this.authService.logout();
+    await this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 }

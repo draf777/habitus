@@ -15,6 +15,7 @@ cache:
     name: node:26
   before_script:
     - cd $CODE_DIR
+    - node scripts/write-environment.mjs
     - npm ci
 
 test_app:

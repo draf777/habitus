@@ -99,4 +99,12 @@
       </ion-item>
     }
   </ion-list>
+
+  <ion-list [inset]="true">
+    <ion-list-header>Konto</ion-list-header>
+
+    <ion-item button detail="false" lines="none" (click)="logout()">
+      <ion-label color="danger">Abmelden</ion-label>
+    </ion-item>
+  </ion-list>
 </ion-content>

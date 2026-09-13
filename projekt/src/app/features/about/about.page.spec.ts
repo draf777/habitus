@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 
 import { AboutPage } from './about.page';
 import { APP_INFO } from '../../core/app-info';
+import { AuthService } from '../../core/services/auth.service';
 import { DemoDataService } from '../../core/services/demo-data.service';
 import { SettingsService } from '../../core/services/settings.service';
 
@@ -21,6 +23,8 @@ describe('AboutPage', () => {
     setColorScheme: ReturnType<typeof vi.fn>;
   };
   let demoData: { hasDemoData: ReturnType<typeof vi.fn>; clearDemoData: ReturnType<typeof vi.fn> };
+  let authService: { logout: ReturnType<typeof vi.fn> };
+  let router: { navigateByUrl: ReturnType<typeof vi.fn> };
   /** The role returned by the confirm alert once dismissed; set per test. */
   let alertDismissRole: string | undefined;
 
@@ -36,11 +40,15 @@ describe('AboutPage', () => {
       clearDemoData: vi.fn().mockResolvedValue(undefined),
     };
     alertDismissRole = 'cancel';
+    authService = { logout: vi.fn().mockResolvedValue(undefined) };
+    router = { navigateByUrl: vi.fn().mockResolvedValue(true) };
 
     TestBed.configureTestingModule({
       providers: [
         { provide: SettingsService, useValue: settings },
         { provide: DemoDataService, useValue: demoData },
+        { provide: AuthService, useValue: authService },
+        { provide: Router, useValue: router },
         {
           provide: AlertController,
           useValue: {
@@ -119,5 +127,12 @@ describe('AboutPage', () => {
     await flushPromises();
 
     expect(fixture.componentInstance.hasDemoData()).toBe(false);
+  });
+
+  it('signs out and navigates to the login page', async () => {
+    await fixture.componentInstance.logout();
+
+    expect(authService.logout).toHaveBeenCalled();
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/login', { replaceUrl: true });
   });
 });

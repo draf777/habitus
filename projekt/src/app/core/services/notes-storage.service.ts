@@ -1,86 +1,68 @@
 import { Injectable, inject } from '@angular/core';
-import { Storage } from '@ionic/storage-angular';
+import { Firestore } from '@angular/fire/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, setDoc } from 'firebase/firestore';
 
-import { AsyncWriteQueue } from '../async-write-queue.util';
+import { AuthService } from './auth.service';
 import { Note } from '../../models/note.model';
 
-const NOTES_KEY = 'notes';
-
 /**
- * Persists notes via Ionic Storage, as a single array under one key — see
- * `HabitStorageService` for why that's enough for this app's data size, and
- * `AsyncWriteQueue` for why every mutating method runs through `writeQueue`.
+ * Persists notes in Firestore, under `users/{uid}/notes` for the signed-in
+ * user — see `HabitStorageService` for why per-document writes replace the
+ * old Ionic-Storage array + write-queue approach.
  */
 @Injectable({ providedIn: 'root' })
 export class NotesStorageService {
-  private readonly storage = inject(Storage);
-  private readonly writeQueue = new AsyncWriteQueue();
-  private ready: Promise<unknown> | null = null;
+  private readonly firestore = inject(Firestore);
+  private readonly authService = inject(AuthService);
 
-  private ensureReady(): Promise<unknown> {
-    if (!this.ready) {
-      this.ready = this.storage.create();
+  private requireUid(): string {
+    const uid = this.authService.currentUser()?.uid;
+    if (!uid) {
+      throw new Error('NotesStorageService used while signed out');
     }
-    return this.ready;
+    return uid;
+  }
+
+  private notesPath(): string {
+    return `users/${this.requireUid()}/notes`;
   }
 
   /** All stored notes, in the order they were created. */
   async getNotes(): Promise<Note[]> {
-    await this.ensureReady();
-    const notes = (await this.storage.get(NOTES_KEY)) as Note[] | null;
-    return notes ?? [];
+    const snapshot = await getDocs(query(collection(this.firestore, this.notesPath()), orderBy('createdAt')));
+    return snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }) as Note);
   }
 
   /** One stored note by id, if it exists. */
   async getNote(id: string): Promise<Note | undefined> {
-    const notes = await this.getNotes();
-    return notes.find((note) => note.id === id);
+    const snapshot = await getDoc(doc(this.firestore, `${this.notesPath()}/${id}`));
+    return snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as Note) : undefined;
   }
 
   /** Creates a new note and persists it. */
   async addNote(input: { title: string; content: string }): Promise<Note> {
-    await this.ensureReady();
-    return this.writeQueue.run(async () => {
-      const now = new Date().toISOString();
-      const note: Note = {
-        ...input,
-        id: crypto.randomUUID(),
-        createdAt: now,
-        updatedAt: now,
-      };
-      const notes = await this.getNotes();
-      await this.storage.set(NOTES_KEY, [...notes, note]);
-      return note;
-    });
+    const now = new Date().toISOString();
+    const data = { ...input, createdAt: now, updatedAt: now };
+    const ref = doc(collection(this.firestore, this.notesPath()));
+    await setDoc(ref, data);
+    return { id: ref.id, ...data };
   }
 
   /** Updates a note's title and/or content, refreshing `updatedAt`. */
   async updateNote(id: string, changes: Partial<Pick<Note, 'title' | 'content'>>): Promise<Note> {
-    await this.ensureReady();
-    return this.writeQueue.run(async () => {
-      const notes = await this.getNotes();
-      const index = notes.findIndex((note) => note.id === id);
-      if (index === -1) {
-        throw new Error(`Note ${id} does not exist`);
-      }
+    const ref = doc(this.firestore, `${this.notesPath()}/${id}`);
+    const snapshot = await getDoc(ref);
+    if (!snapshot.exists()) {
+      throw new Error(`Note ${id} does not exist`);
+    }
 
-      const updated: Note = { ...notes[index], ...changes, updatedAt: new Date().toISOString() };
-      const next = [...notes];
-      next[index] = updated;
-      await this.storage.set(NOTES_KEY, next);
-      return updated;
-    });
+    const updatedAt = new Date().toISOString();
+    await setDoc(ref, { ...changes, updatedAt }, { merge: true });
+    return { id, ...(snapshot.data() as Omit<Note, 'id'>), ...changes, updatedAt };
   }
 
   /** Removes a note. */
   async deleteNote(id: string): Promise<void> {
-    await this.ensureReady();
-    return this.writeQueue.run(async () => {
-      const notes = await this.getNotes();
-      await this.storage.set(
-        NOTES_KEY,
-        notes.filter((note) => note.id !== id),
-      );
-    });
+    await deleteDoc(doc(this.firestore, `${this.notesPath()}/${id}`));
   }
 }

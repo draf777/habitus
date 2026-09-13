@@ -1,31 +1,27 @@
 import { TestBed } from '@angular/core/testing';
-import { Storage } from '@ionic/storage-angular';
+import { Firestore } from '@angular/fire/firestore';
 
+import { AuthService } from './auth.service';
 import { NotesStorageService } from './notes-storage.service';
 
-/** In-memory stand-in for Ionic Storage, so tests don't need a real driver. */
-class FakeStorage {
-  private readonly store = new Map<string, unknown>();
+const firestoreState = vi.hoisted(() => ({ documents: new Map<string, Record<string, unknown>>() }));
 
-  async create(): Promise<this> {
-    return this;
-  }
-
-  async get(key: string): Promise<unknown> {
-    return this.store.get(key) ?? null;
-  }
-
-  async set(key: string, value: unknown): Promise<void> {
-    this.store.set(key, value);
-  }
-}
+vi.mock('firebase/firestore', async () => {
+  const { createFakeFirestoreModule } = await import('./testing/fake-firestore.util');
+  return createFakeFirestoreModule(firestoreState.documents);
+});
 
 describe('NotesStorageService', () => {
   let service: NotesStorageService;
 
   beforeEach(() => {
+    firestoreState.documents.clear();
     TestBed.configureTestingModule({
-      providers: [NotesStorageService, { provide: Storage, useClass: FakeStorage }],
+      providers: [
+        NotesStorageService,
+        { provide: Firestore, useValue: {} },
+        { provide: AuthService, useValue: { currentUser: () => ({ uid: 'test-uid' }) } },
+      ],
     });
     service = TestBed.inject(NotesStorageService);
   });
@@ -93,8 +89,6 @@ describe('NotesStorageService', () => {
   });
 
   it('keeps every add when several notes are added concurrently', async () => {
-    // Weder awaited noch nacheinander — sonst würde der zweite Aufruf mit
-    // einer veralteten Kopie der Liste schreiben und den ersten überschreiben.
     const [first, second, third] = await Promise.all([
       service.addNote({ title: 'A', content: '1' }),
       service.addNote({ title: 'B', content: '2' }),

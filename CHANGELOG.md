@@ -2,6 +2,17 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Neueste Version zuoberst.
 
+## [1.1.0] - 2026-09-13
+
+### Added
+
+- Login/Registrierung per E-Mail/Passwort (Firebase Authentication), mit Inline-Validierung (Pflichtfelder, E-Mail-Format, Passwort mindestens 6 Zeichen) und verständlichen Fehlermeldungen bei falschem Passwort oder bereits vergebener E-Mail
+- Habits, Einträge, Todos und Notizen werden pro Konto über Firestore synchronisiert (`users/{uid}/...`), inklusive Offline-Persistenz — die App funktioniert weiterhin ohne Internet und synct automatisch bei Wiederverbindung
+- Alle Tabs sind jetzt nur für eingeloggte Nutzer erreichbar; nicht eingeloggte Nutzer werden zur Login-Seite weitergeleitet
+- Abmelden-Button auf der "Über"-Seite
+- Bereits vorhandene lokale Daten (eigene oder die automatisch angelegten Demo-Daten) werden beim ersten Login einmalig automatisch in das Firestore-Konto übernommen
+- Firestore Security Rules: Zugriff ausschliesslich für den eingeloggten Nutzer auf die eigenen Daten
+
 ## [1.0.0] - 2026-09-11
 
 Aktuelle Version.

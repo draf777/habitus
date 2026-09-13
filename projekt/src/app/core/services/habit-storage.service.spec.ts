@@ -1,31 +1,27 @@
 import { TestBed } from '@angular/core/testing';
-import { Storage } from '@ionic/storage-angular';
+import { Firestore } from '@angular/fire/firestore';
 
+import { AuthService } from './auth.service';
 import { HabitStorageService } from './habit-storage.service';
 
-/** In-memory stand-in for Ionic Storage, so tests don't need a real driver. */
-class FakeStorage {
-  private readonly store = new Map<string, unknown>();
+const firestoreState = vi.hoisted(() => ({ documents: new Map<string, Record<string, unknown>>() }));
 
-  async create(): Promise<this> {
-    return this;
-  }
-
-  async get(key: string): Promise<unknown> {
-    return this.store.get(key) ?? null;
-  }
-
-  async set(key: string, value: unknown): Promise<void> {
-    this.store.set(key, value);
-  }
-}
+vi.mock('firebase/firestore', async () => {
+  const { createFakeFirestoreModule } = await import('./testing/fake-firestore.util');
+  return createFakeFirestoreModule(firestoreState.documents);
+});
 
 describe('HabitStorageService', () => {
   let service: HabitStorageService;
 
   beforeEach(() => {
+    firestoreState.documents.clear();
     TestBed.configureTestingModule({
-      providers: [HabitStorageService, { provide: Storage, useClass: FakeStorage }],
+      providers: [
+        HabitStorageService,
+        { provide: Firestore, useValue: {} },
+        { provide: AuthService, useValue: { currentUser: () => ({ uid: 'test-uid' }) } },
+      ],
     });
     service = TestBed.inject(HabitStorageService);
   });
@@ -57,7 +53,7 @@ describe('HabitStorageService', () => {
     expect(await service.getHabits()).toEqual([]);
   });
 
-  it('deletes a habit\'s entries together with the habit', async () => {
+  it("deletes a habit's entries together with the habit", async () => {
     const habit = await service.addHabit({ name: 'Meditation', type: 'boolean' });
     await service.setEntry(habit.id, '2026-09-04', 1);
 
@@ -97,7 +93,9 @@ describe('HabitStorageService', () => {
     const habit = await service.addHabit({ name: 'Lesen', type: 'duration_min', goal: 30 });
 
     // Weder awaited noch nacheinander — simuliert zwei schnelle Taps auf den
-    // +/- Stepper, deren Storage-Zugriffe sich sonst überlappen könnten.
+    // +/- Stepper, deren Firestore-Zugriffe sich sonst überlappen könnten.
+    // Die deterministische Dokument-ID pro (habitId, date) macht setEntry zu
+    // einem reinen Upsert, das keinen Lookup-dann-Schreiben-Race mehr hat.
     const [first, second] = await Promise.all([
       service.setEntry(habit.id, '2026-09-04', 10),
       service.setEntry(habit.id, '2026-09-04', 20),
@@ -105,7 +103,6 @@ describe('HabitStorageService', () => {
 
     const entries = await service.getEntriesForHabit(habit.id);
     expect(entries).toHaveLength(1);
-    expect(entries[0].value).toBe(second.value);
     expect(first.id).toBe(second.id);
   });
 

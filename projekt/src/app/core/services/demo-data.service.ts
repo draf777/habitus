@@ -5,9 +5,16 @@ import { lastDays, today } from '../date.util';
 import { HabitStorageService } from './habit-storage.service';
 import { NotesStorageService } from './notes-storage.service';
 import { TodoStorageService } from './todo-storage.service';
+import { Habit, HabitEntry } from '../../models/habit.model';
+import { Note } from '../../models/note.model';
+import { Todo } from '../../models/todo.model';
 
 const SEEDED_KEY = 'demoDataSeeded';
 const TRACKED_IDS_KEY = 'demoDataIds';
+const HABITS_KEY = 'habits';
+const ENTRIES_KEY = 'entries';
+const TODOS_KEY = 'todos';
+const NOTES_KEY = 'notes';
 
 /** Ids of the habits/todos/notes `seedIfNeeded` created, so `clearDemoData` can tell them apart from the user's own data. */
 interface DemoDataIds {
@@ -33,6 +40,16 @@ const EMPTY_IDS: DemoDataIds = { habitIds: [], todoIds: [], noteIds: [] };
  * separately so `clearDemoData` removes exactly those (whether or not the
  * user has since edited them) without ever touching anything the user added
  * themselves.
+ *
+ * `seedIfNeeded` writes directly to the local Ionic Storage keys (`habits`,
+ * `entries`, `todos`, `notes`) instead of going through
+ * `HabitStorageService`/`TodoStorageService`/`NotesStorageService`: it runs
+ * from `AppComponent`'s constructor, before any login is possible, but those
+ * services are now Firestore-backed and require a signed-in user. The demo
+ * data reaches the user's account like any other pre-existing local data
+ * would — via `MigrationService`, on first login/registration. `clearDemoData`
+ * runs after login (only reachable from the About page, behind the auth
+ * guard), so it still goes through the real services against Firestore.
  */
 @Injectable({ providedIn: 'root' })
 export class DemoDataService {
@@ -58,16 +75,20 @@ export class DemoDataService {
     }
     await this.storage.set(SEEDED_KEY, true);
 
-    const meditation = await this.habitStorage.addHabit({
+    const meditation = await this.appendLocal<Habit>(HABITS_KEY, {
+      id: crypto.randomUUID(),
       name: 'Meditieren',
       type: 'boolean',
       icon: 'leaf-outline',
+      createdAt: new Date().toISOString(),
     });
-    const reading = await this.habitStorage.addHabit({
+    const reading = await this.appendLocal<Habit>(HABITS_KEY, {
+      id: crypto.randomUUID(),
       name: 'Lesen',
       type: 'duration_min',
       goal: 20,
       icon: 'book-outline',
+      createdAt: new Date().toISOString(),
     });
 
     // Last 7 days, oldest first; index 6 is today. Both habits are already
@@ -77,7 +98,7 @@ export class DemoDataService {
     // to show right away instead of starting at 0.
     const dates = lastDays(new Date(), 7);
     for (const i of [0, 4, 5, 6]) {
-      await this.habitStorage.setEntry(meditation.id, dates[i], 1);
+      await this.appendLocal<HabitEntry>(ENTRIES_KEY, { id: crypto.randomUUID(), habitId: meditation.id, date: dates[i], value: 1 });
     }
     const readingEntries: ReadonlyArray<readonly [number, number]> = [
       [0, 25],
@@ -88,20 +109,49 @@ export class DemoDataService {
       [6, 30],
     ];
     for (const [i, value] of readingEntries) {
-      await this.habitStorage.setEntry(reading.id, dates[i], value);
+      await this.appendLocal<HabitEntry>(ENTRIES_KEY, { id: crypto.randomUUID(), habitId: reading.id, date: dates[i], value });
     }
 
     const date = today();
-    const shopping = await this.todoStorage.addTodo({ text: 'Einkaufsliste schreiben', date });
-    const mails = await this.todoStorage.addTodo({ text: 'Mails beantworten', date });
+    const shopping = await this.appendLocal<Todo>(TODOS_KEY, {
+      id: crypto.randomUUID(),
+      text: 'Einkaufsliste schreiben',
+      date,
+      done: false,
+      createdAt: new Date().toISOString(),
+      order: Date.now(),
+    });
+    const mails = await this.appendLocal<Todo>(TODOS_KEY, {
+      id: crypto.randomUUID(),
+      text: 'Mails beantworten',
+      date,
+      done: false,
+      createdAt: new Date().toISOString(),
+      order: Date.now(),
+    });
 
     // Left over from earlier in the week: one still open, one already done —
     // so "Frühere, noch offene Todos" and "Erledigt" aren't empty either.
-    const taxes = await this.todoStorage.addTodo({ text: 'Steuererklärung einreichen', date: dates[1] });
-    const bill = await this.todoStorage.addTodo({ text: 'Stromrechnung bezahlt', date: dates[3] });
-    await this.todoStorage.setDone(bill.id, true);
+    const taxes = await this.appendLocal<Todo>(TODOS_KEY, {
+      id: crypto.randomUUID(),
+      text: 'Steuererklärung einreichen',
+      date: dates[1],
+      done: false,
+      createdAt: new Date().toISOString(),
+      order: Date.now(),
+    });
+    const bill = await this.appendLocal<Todo>(TODOS_KEY, {
+      id: crypto.randomUUID(),
+      text: 'Stromrechnung bezahlt',
+      date: dates[3],
+      done: true,
+      createdAt: new Date().toISOString(),
+      order: Date.now(),
+    });
 
-    const note = await this.notesStorage.addNote({
+    const noteNow = new Date().toISOString();
+    const note = await this.appendLocal<Note>(NOTES_KEY, {
+      id: crypto.randomUUID(),
       title: 'Beispielnotiz',
       content:
         'Das ist eine Beispielnotiz — du kannst sie bearbeiten oder löschen.\n\n' +
@@ -109,6 +159,8 @@ export class DemoDataService {
         '- Milch\n' +
         '- Brot\n\n' +
         'Links werden automatisch erkannt: https://ionicframework.com',
+      createdAt: noteNow,
+      updatedAt: noteNow,
     });
 
     await this.storage.set(TRACKED_IDS_KEY, {
@@ -116,6 +168,13 @@ export class DemoDataService {
       todoIds: [shopping.id, mails.id, taxes.id, bill.id],
       noteIds: [note.id],
     } satisfies DemoDataIds);
+  }
+
+  /** Appends `item` to the local Ionic Storage array under `key` and returns it, for use before any login exists. */
+  private async appendLocal<T>(key: string, item: T): Promise<T> {
+    const items = ((await this.storage.get(key)) as T[] | null) ?? [];
+    await this.storage.set(key, [...items, item]);
+    return item;
   }
 
   /** Whether any of the seeded demo habits/todos/notes still exist. */

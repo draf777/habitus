@@ -1,6 +1,6 @@
 {
   "name": "habitus",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "David Roth",
   "scripts": {
     "ng": "ng",
@@ -18,6 +18,7 @@
     "@angular/common": "22.0.1",
     "@angular/compiler": "22.0.1",
     "@angular/core": "22.0.1",
+    "@angular/fire": "^20.0.1",
     "@angular/forms": "22.0.1",
     "@angular/platform-browser": "22.0.1",
     "@angular/router": "22.0.1",
@@ -25,6 +26,7 @@
     "@ionic/angular": "^9.0.0",
     "@ionic/storage-angular": "^4.0.0",
     "chart.js": "^4.5.1",
+    "firebase": "^11.10.0",
     "ionicons": "^8.1.0",
     "ng2-charts": "^10.0.0",
     "rxjs": "~7.8.0",

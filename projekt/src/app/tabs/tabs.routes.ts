@@ -1,16 +1,21 @@
 import { Routes } from '@angular/router';
 
+import { authGuard } from '../core/guards/auth.guard';
 import { DEFAULT_TAB } from './tabs.config';
 import { TabsPage } from './tabs.page';
 
 /**
  * Routes below the tab bar. Every tab is lazily loaded so a tab only costs
  * its own bundle; the paths must match `TABS` in `tabs.config.ts`.
+ *
+ * `authGuard` is applied once on the parent `tabs` route, which gates every
+ * child (and the redirects into them) in a single place.
  */
 export const routes: Routes = [
   {
     path: 'tabs',
     component: TabsPage,
+    canActivate: [authGuard],
     children: [
       {
         path: 'heute',
